@@ -536,6 +536,14 @@
     </div>
   </main>
   
+  <!-- Footer -->
+  <footer style="text-align: center; padding: 2rem 1rem; color: var(--text-secondary); font-size: 0.875rem; border-top: 1px solid var(--border);">
+    <div class="container">
+      <p style="margin-bottom: 0.5rem;">Sui Hub Site <span style="color: var(--accent);">v1.0.0</span></p>
+      <p>© 2025 Suiryuu. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+  
   <!-- Drawer Overlay -->
   <div id="drawerOverlay" class="drawer-overlay"></div>
   
@@ -725,7 +733,6 @@
     });
   });
 
-  logoutBtn.addEventListener("click", () => signOut(auth));
   logoutDrawer.addEventListener("click", () => {
     signOut(auth);
     closeDrawerFunc();
