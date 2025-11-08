@@ -1,1 +1,118 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Sui Hub Site</title><style>:root{--bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#7c3aed;--glass:rgba(255,255,255,0.03);--glass-2:rgba(255,255,255,0.02);--text:#e6eef6;color-scheme:dark}*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;background:var(--bg);color:var(--text);display:flex;justify-content:center;align-items:flex-start}header{display:flex;justify-content:space-between;align-items:center;width:100%;padding:12px 24px;position:sticky;top:0;background:var(--bg);z-index:1000}header h1{margin:0;font-size:18px}header #avatar{width:40px;height:40px;border-radius:50%;cursor:pointer}main{max-width:980px;width:100%;padding:24px}pre{background:#020617;padding:14px;border-radius:10px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;margin:0}.card{background:linear-gradient(180deg,var(--glass),var(--glass-2));border-radius:14px;padding:18px;box-shadow:0 6px 30px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03);margin-bottom:16px}.cta-row{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:14px}.btn{appearance:none;border:0;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600;transition:.1s}.btn-primary{background:linear-gradient(90deg,var(--accent),#5b21b6);color:#fff}.btn:active{transform:scale(0.96);filter:brightness(1.2)}.features{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}.feature{background:rgba(255,255,255,0.01);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}.feature b{display:block;margin-bottom:6px}.drawer{position:fixed;top:0;right:0;width:320px;height:100%;background:var(--bg);transform:translateX(100%);transition:.3s;display:flex;flex-direction:column;z-index:2000;overflow-y:auto;padding:16px}.drawer.open{transform:translateX(0)}.drawer h3{margin-top:0}.drawer button{margin-top:12px}.switch{position:relative;display:inline-block;width:50px;height:24px}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#555;border-radius:24px;transition:.4s}.slider:before{position:absolute;content:"";height:20px;width:20px;left:2px;bottom:2px;background:white;border-radius:50%;transition:.4s}.switch input:checked + .slider{background:var(--accent)}.switch input:checked + .slider:before{transform:translateX(26px)}</style></head><body><header><h1>Sui Hub Site</h1><img id="avatar" src="https://www.gravatar.com/avatar?d=mp" alt="Avatar"/></header><main><section class="card"><h3>Sobre este script</h3><pre id="codeArea">loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()</pre><div class="cta-row"><button id="copyBtn" class="btn btn-primary">Copiar</button><button id="downloadBtn" class="btn btn-primary">Baixar</button><button id="viewBtn" class="btn btn-primary">Visualizar</button></div><div class="features"><div class="feature"><b>Low Graphics</b>Reduz sombras/partículas</div><div class="feature"><b>Auto Pickup</b>Coleta automática</div><div class="feature"><b>Teleport Mode</b>Aura + Teleporte</div><div class="feature"><b>Hotkeys</b>Atalhos</div></div></section></main><div class="drawer" id="profileDrawer"><div id="profileView"><h3>Perfil</h3><img id="profilePic" style="width:80px;height:80px;border-radius:50%;"/><p>Nome: <span id="profileName"></span> <span id="verifiedBadge" style="color:#0af;display:none;">✔️</span></p><p>Bio: <span id="profileBio"></span></p><p>Entrou em: <span id="profileCreated"></span></p><button id="editProfileBtn" class="btn btn-primary">Editar Perfil</button><button id="themeBtn" class="btn btn-primary">Tema</button><button id="logoutBtn" class="btn btn-primary">Sair</button></div><div id="editProfileView" style="display:none"><h3>Editar Perfil</h3><input type="file" id="fileInput" accept="image/*"/><input type="text" id="nameInput" placeholder="Nome"/><textarea id="bioInput" placeholder="Bio"></textarea><button id="saveProfileBtn" class="btn btn-primary">Salvar</button><button id="backBtn" class="btn btn-primary">Voltar</button></div></div><script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";import { getAuth, GoogleAuthProvider, signInWithPopup, signOut,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";const firebaseConfig={apiKey:"AIzaSyBG3D3ieH0f-3608DcWnIIfQS_n5tP7EHE",authDomain:"sui-hub.firebaseapp.com",projectId:"sui-hub",storageBucket:"sui-hub.firebasestorage.app",messagingSenderId:"590135716171",appId:"1:590135716171:web:521bbb28c8ec4eae2e60ce"};const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFirestore(app);const storage=getStorage(app);const provider=new GoogleAuthProvider();const adminUID="gV06HRh6saXgXkPWG2FquFME2Or1";let currentUser=null;let theme="dark";const drawer=document.getElementById("profileDrawer");const avatar=document.getElementById("avatar");const profilePic=document.getElementById("profilePic");const profileName=document.getElementById("profileName");const profileBio=document.getElementById("profileBio");const profileCreated=document.getElementById("profileCreated");const verifiedBadge=document.getElementById("verifiedBadge");const profileView=document.getElementById("profileView");const editProfileView=document.getElementById("editProfileView");avatar.onclick=()=>drawer.classList.toggle("open");document.getElementById("editProfileBtn").onclick=()=>{profileView.style.display="none";editProfileView.style.display="flex"};document.getElementById("backBtn").onclick=()=>{profileView.style.display="flex";editProfileView.style.display="none"};document.getElementById("themeBtn").onclick=()=>{theme=theme==="dark"?"light":"dark";document.body.style.background=theme==="dark"?"var(--bg)":"#eee";document.body.style.color=theme==="dark"?"var(--text)":"#111";localStorage.setItem("theme",theme)};document.getElementById("logoutBtn").onclick=()=>signOut(auth);onAuthStateChanged(auth,async user=>{if(user){currentUser=user;avatar.src=user.photoURL||"https://www.gravatar.com/avatar?d=mp";const docRef=doc(db,"users",user.uid);const docSnap=await getDoc(docRef);if(!docSnap.exists()){await setDoc(docRef,{name:user.displayName,bio:"",photoURL:user.photoURL||"",createdAt:new Date().toISOString()})}updateProfileUI();}else{avatar.src="https://www.gravatar.com/avatar?d=mp"}});async function updateProfileUI(){const docRef=doc(db,"users",currentUser.uid);const docSnap=await getDoc(docRef);if(docSnap.exists()){const data=docSnap.data();profileName.textContent=data.name;profileBio.textContent=data.bio;profileCreated.textContent=new Date(data.createdAt).toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});profilePic.src=data.photoURL||"https://www.gravatar.com/avatar?d=mp";verifiedBadge.style.display=currentUser.uid===adminUID?"inline":"none"}}document.getElementById("saveProfileBtn").onclick=async()=>{const nameInput=document.getElementById("nameInput").value.trim();const bioInput=document.getElementById("bioInput").value.trim();if(!nameInput)return alert("Nome obrigatório");const q=query(collection(db,"users"),where("name","==",nameInput));const snap=await getDocs(q);if(!snap.empty && snap.docs[0].id!==currentUser.uid)return alert("Nome já existe");let photoURL=profilePic.src;if(fileInput.files[0]){const file=fileInput.files[0];if(file.size>1024*1024)return alert("Máx 1MB");const fileRef=ref(storage,`pfps/${currentUser.uid}.png`);await uploadBytes(fileRef,file);photoURL=await getDownloadURL(fileRef)}await setDoc(doc(db,"users",currentUser.uid),{name:nameInput,bio:bioInput,photoURL,createdAt:(await getDoc(doc(db,"users",currentUser.uid))).data().createdAt});updateProfileUI();profileView.style.display="flex";editProfileView.style.display="none"};const codeText='loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()';const codeArea=document.getElementById("codeArea");codeArea.textContent=codeText;document.getElementById("copyBtn").onclick=()=>navigator.clipboard.writeText(codeText);document.getElementById("downloadBtn").onclick=()=>{const file=new Blob([codeText],{type:"text/plain"});const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download="sui-hub-demonfall.lua";a.click()};document.getElementById("viewBtn").onclick=()=>{const w=window.open();w.document.write("<pre style='white-space:pre-wrap;font-family:monospace;padding:14px'>"+codeText+"</pre>");w.document.close()};if(localStorage.getItem("theme")){theme=localStorage.getItem("theme");document.body.style.background=theme==="dark"?"var(--bg)":"#eee";document.body.style.color=theme==="dark"?"var(--text)":"#111"}</script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sui Hub Site</title>
+<style>
+  :root{
+    --bg:#071028; --card:#0b1220; --muted:#9aa4b2; --accent:#7c3aed; --glass:rgba(255,255,255,0.03);
+    --glass2:rgba(255,255,255,0.02); --text:#e6eef6;
+  }
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+  body.light{--bg:#f6f8fb;--card:#ffffff;--muted:#6b7280;--text:#0b1220}
+  .wrap{max-width:1100px;margin:28px auto;padding:18px}
+  .card{background:linear-gradient(180deg,var(--glass),var(--glass2));border-radius:12px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.03)}
+  .btn{appearance:none;border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
+  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+  .btn-primary{background:linear-gradient(90deg,var(--accent),#5b21b6);color:#fff}
+  .hidden{display:none}
+  pre{background:#020617;padding:14px;border-radius:8px;color:var(--text);overflow:auto;font-family:ui-monospace,Consolas,monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- ABA LOGIN -->
+  <div id="loginTab">
+    <div class="card" style="text-align:center">
+      <h2>Bem-vindo ao Sui Hub</h2>
+      <p class="muted">Faça login para acessar o script loader — Demonfall</p>
+      <button id="loginBtn" class="btn btn-primary">Login Google</button>
+    </div>
+  </div>
+
+  <!-- ABA SCRIPT (inicialmente escondida) -->
+  <div id="scriptTab" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2>Sui Hub — Demonfall</h2>
+        <div class="small muted">Leve • Rápido • Suporte</div>
+      </div>
+      <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.04)">
+      <pre id="codeArea">loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()</pre>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+        <button id="copyBtn" class="btn btn-primary">Copiar</button>
+        <button id="downloadBtn" class="btn btn-ghost">Baixar</button>
+        <button id="viewBtn" class="btn btn-ghost">Visualizar</button>
+        <div id="statusMsg" class="small muted" style="margin-left:12px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase + App JS -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBG3D3ieH0f-3608DcWnIIfQS_n5tP7EHE",
+  authDomain: "sui-hub.firebaseapp.com",
+  projectId: "sui-hub",
+  storageBucket: "sui-hub.firebasestorage.app",
+  messagingSenderId: "590135716171",
+  appId: "1:590135716171:web:521bbb28c8ec4eae2e60ce",
+  measurementId: "G-G9YXZJV7LE"
+};
+
+const OWNER_UID = "gV06HRh6saXgXkPWG2FME2Or1";
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+// DOM
+const loginBtn = document.getElementById("loginBtn");
+const loginTab = document.getElementById("loginTab");
+const scriptTab = document.getElementById("scriptTab");
+const codeArea = document.getElementById("codeArea");
+const copyBtn = document.getElementById("copyBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const viewBtn = document.getElementById("viewBtn");
+const statusMsg = document.getElementById("statusMsg");
+
+// Funções utilitárias
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Script actions
+copyBtn.addEventListener("click", ()=> {
+  navigator.clipboard.writeText(codeArea.textContent).then(()=>{ statusMsg.textContent = "Copiado!"; setTimeout(()=>statusMsg.textContent="",1200);});
+});
+downloadBtn.addEventListener("click", ()=> {
+  const blob = new Blob([codeArea.textContent], { type: "text/plain" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "sui-hub-demonfall.lua"; document.body.appendChild(a); a.click(); a.remove();
+});
+viewBtn.addEventListener("click", ()=> {
+  const w = window.open(); w.document.write("<pre style='white-space:pre-wrap'>"+escapeHtml(codeArea.textContent)+"</pre>"); w.document.close();
+});
+
+// Login
+loginBtn.onclick = ()=> signInWithPopup(auth, provider).catch(e=>alert("Erro login: "+e.message));
+
+onAuthStateChanged(auth, async (user)=>{
+  if(user){
+    // login bem-sucedido: mostra aba do script
+    loginTab.classList.add("hidden");
+    scriptTab.classList.remove("hidden");
+    // aqui você pode carregar o perfil ou outras ações
+    console.log("Usuário logado:", user.displayName, user.uid);
+  } else {
+    // usuário não logado
+    loginTab.classList.remove("hidden");
+    scriptTab.classList.add("hidden");
+  }
+});
+</script>
+</body>
+</html>
