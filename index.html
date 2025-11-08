@@ -1,215 +1,148 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sui Hub</title>
+<!-- PERFIL + FIRESTORE -->
+<script type="module">
+  import {
+    getFirestore,
+    doc,
+    setDoc,
+    getDoc,
+    updateDoc,
+    collection,
+    addDoc,
+    query,
+    orderBy,
+    onSnapshot
+  } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
-<style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #0f0f0f;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+  const auth = getAuth();
+  const db = getFirestore();
 
-    header {
-        width: 100%;
-        max-width: 900px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px;
-        box-sizing: border-box;
-    }
-
-    .btn {
-        padding: 10px 14px;
-        background: #202020;
-        border-radius: 7px;
-        cursor: pointer;
-        transition: 0.2s;
-        border: 1px solid #333;
-        display: inline-block;
-    }
-
-    .btn:hover {
-        background: #333;
-    }
-
-    #profileBox {
-        border: 1px solid #333;
-        padding: 15px;
-        border-radius: 10px;
-        background: #151515;
-        margin-top: 10px;
-        width: 100%;
-        max-width: 900px;
-    }
-
-    #commentBox {
-        width: 100%;
-        max-width: 900px;
-        margin-top: 20px;
-        padding: 15px;
-        background: #151515;
-        border-radius: 10px;
-        border: 1px solid #333;
-    }
-
-    textarea {
-        width: 100%;
-        background: #111;
-        color: white;
-        border: 1px solid #333;
-        border-radius: 8px;
-        resize: none;
-        padding: 10px;
-        height: 80px;
-    }
-
-    #commentList {
-        margin-top: 20px;
-    }
-
-    .comment {
-        padding: 10px;
-        border-bottom: 1px solid #333;
-    }
-
-    .comment small {
-        opacity: 0.7;
-    }
-
-</style>
-</head>
-<body>
-
-<header>
-    <h2>Sui Hub</h2>
-    <div id="authButtons">
-        <div class="btn" id="loginBtn">Entrar com Google</div>
+  // ========== PERFIL ==========
+  const profileBox = document.createElement("div");
+  profileBox.className = "card";
+  profileBox.style.marginTop = "18px";
+  profileBox.innerHTML = `
+    <h3>Seu Perfil</h3>
+    <div id="profileContent">
+      <p class="small">Faça login para ver seu perfil.</p>
     </div>
-</header>
+  `;
+  document.querySelector("main").appendChild(profileBox);
 
-<div id="profileBox" style="display:none;">
-    <h3>Perfil</h3>
-    <p id="userName"></p>
-    <img id="userImg" width="60" style="border-radius:50%;">
-    <div class="btn" id="logoutBtn">Sair</div>
-</div>
+  async function loadProfile(user) {
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
 
-<!-- ✅ COMENTÁRIOS -->
-<div id="commentBox">
+    if (!snap.exists()) {
+      await setDoc(ref, {
+        name: user.displayName ?? "Usuário",
+        photo: user.photoURL ?? "",
+        bio: "Sem bio ainda"
+      });
+    }
+
+    const data = (await getDoc(ref)).data();
+
+    document.getElementById("profileContent").innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;">
+        <img src="${data.photo}" style="width:48px;height:48px;border-radius:50%;"/>
+        <div>
+          <b>${data.name}</b>
+          <div class="small">${data.bio}</div>
+        </div>
+      </div>
+
+      <textarea id="bioInput" placeholder="Editar bio..." style="
+        width:100%;margin-top:10px;background:#020617;
+        border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+        color:#fff;padding:8px;font-size:14px;min-height:60px"></textarea>
+
+      <button id="saveBio" class="btn btn-primary" style="margin-top:8px;">
+        Salvar bio
+      </button>
+    `;
+
+    document.getElementById("saveBio").onclick = async () => {
+      const text = document.getElementById("bioInput").value;
+      await updateDoc(ref, { bio: text });
+      alert("Bio salva!");
+      loadProfile(user);
+    };
+  }
+
+
+  // -------- COMENTÁRIOS --------
+  const commentsBox = document.createElement("div");
+  commentsBox.className = "card";
+  commentsBox.style.marginTop = "18px";
+  commentsBox.innerHTML = `
     <h3>Comentários</h3>
 
-    <div id="commentWrite" style="display:none;">
-        <textarea id="commentText" placeholder="Escreva algo..."></textarea>
-        <br><br>
-        <div class="btn" id="sendComment">Enviar</div>
-    </div>
+    <textarea id="commentText" placeholder="Escreva algo..." style="
+      width:100%;margin-top:8px;background:#020617;
+      border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+      color:#fff;padding:8px;font-size:14px;min-height:60px"></textarea>
 
-    <div id="commentList"></div>
-</div>
+    <button id="sendComment" class="btn btn-primary" style="margin-top:8px;">
+      Enviar
+    </button>
 
-<!-- ✅ Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    <div id="commentList" style="margin-top:14px;display:flex;flex-direction:column;gap:10px;"></div>
+  `;
+  document.querySelector("main").appendChild(commentsBox);
 
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot }
-    from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-// ✅ CONFIG FIREBASE
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "sui-hub.firebaseapp.com",
-  projectId: "sui-hub",
-  storageBucket: "sui-hub.firebasestorage.app",
-  messagingSenderId: "590135716171",
-  appId: "1:590135716171:web:521bbb28c8ec4eae2e60ce",
-  measurementId: "G-G9YXZJV7LE"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore(app);
-
-// 🔹 DOM
-const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const profileBox = document.getElementById("profileBox");
-const userName = document.getElementById("userName");
-const userImg = document.getElementById("userImg");
-const commentWrite = document.getElementById("commentWrite");
-const sendComment = document.getElementById("sendComment");
-const commentText = document.getElementById("commentText");
-const commentList = document.getElementById("commentList");
-
-const provider = new GoogleAuthProvider();
-
-// ✅ LOGIN
-loginBtn.onclick = async () => {
-    try {
-        await signInWithPopup(auth, provider);
-    } catch(e) {
-        alert("Erro ao logar");
-    }
-};
-
-// ✅ LOGOUT
-logoutBtn.onclick = () => signOut(auth);
-
-// ✅ AUTH EVENT
-onAuthStateChanged(auth, user => {
-    if(user) {
-        loginBtn.style.display = "none";
-        profileBox.style.display = "block";
-        commentWrite.style.display = "block";
-        userName.innerText = user.displayName;
-        userImg.src = user.photoURL;
-    } else {
-        loginBtn.style.display = "inline-block";
-        profileBox.style.display = "none";
-        commentWrite.style.display = "none";
-    }
-});
-
-// ✅ Enviar comentário
-sendComment.onclick = async () => {
-    const text = commentText.value.trim();
-    if(!text) return;
+  async function sendComment(text) {
+    const user = auth.currentUser;
+    if (!user) return alert("Faça login primeiro!");
 
     await addDoc(collection(db, "comments"), {
-        text,
-        user: auth.currentUser.displayName,
-        time: Date.now()
+      uid: user.uid,
+      name: user.displayName ?? "Usuário",
+      photo: user.photoURL ?? "",
+      text,
+      createdAt: new Date()
     });
+  }
 
-    commentText.value = "";
-};
+  document.getElementById("sendComment").onclick = () => {
+    const text = document.getElementById("commentText").value.trim();
+    if (text.length < 1) return;
+    sendComment(text);
+    document.getElementById("commentText").value = "";
+  };
 
-// ✅ Listar comentários
-const q = query(collection(db, "comments"), orderBy("time", "desc"));
 
-onSnapshot(q, (snapshot)=>{
-    commentList.innerHTML = "";
-    snapshot.forEach(doc => {
-        const c = doc.data();
-        commentList.innerHTML += `
-            <div class="comment">
-                <b>${c.user}</b><br>
-                ${c.text}<br>
-                <small>${new Date(c.time).toLocaleString()}</small>
-            </div>
-        `;
+  // LIVE COMMENTS
+  const q = query(collection(db, "comments"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snap) => {
+    const list = document.getElementById("commentList");
+    list.innerHTML = "";
+    snap.forEach(doc => {
+      const c = doc.data();
+      const d = document.createElement("div");
+      d.style =
+        "background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.05);padding:10px;border-radius:10px;";
+      d.innerHTML = `
+        <div style="display:flex;gap:10px;align-items:center;">
+          <img src="${c.photo}" style="width:34px;height:34px;border-radius:50%;" />
+          <b>${c.name}</b>
+        </div>
+        <div style="margin-top:6px">${c.text}</div>
+      `;
+      list.appendChild(d);
     });
-});
+  });
+
+
+  // LOGIN WATCH
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  onAuthStateChanged(auth, (user) => {
+    if (user) loadProfile(user);
+    else {
+      document.getElementById("profileContent").innerHTML =
+        `<p class="small">Faça login para ver seu perfil.</p>`;
+    }
+  });
+
 </script>
-
-</body>
-</html>
