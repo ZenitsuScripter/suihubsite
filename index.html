@@ -18,6 +18,18 @@
   .btn-primary{background:linear-gradient(90deg,var(--accent),#5b21b6);color:#fff}
   .hidden{display:none}
   pre{background:#020617;padding:14px;border-radius:8px;color:var(--text);overflow:auto;font-family:ui-monospace,Consolas,monospace}
+  /* drawer */
+  .drawer{position:fixed;top:0;right:-360px;width:360px;height:100%;background:var(--card);box-shadow:-10px 0 50px rgba(0,0,0,0.6);transition:right .28s;z-index:9999;padding:18px;display:flex;flex-direction:column;gap:12px}
+  .drawer.open{right:0}
+  .drawer .close{align-self:flex-end;background:transparent;border:0;color:var(--muted);cursor:pointer}
+  .pf-row{display:flex;gap:12px;align-items:center}
+  .pf-row img{width:64px;height:64px;border-radius:999px;object-fit:cover}
+  .verified{display:inline-block;background:#0ea5a4;color:#001219;padding:4px 8px;border-radius:999px;font-size:12px;margin-left:8px}
+  .drawer .tabs{display:flex;gap:6px;margin-top:6px}
+  .drawer .tabBtn{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer}
+  .drawer .tabBtn.active{background:linear-gradient(90deg,var(--accent),#5b21b6);color:#fff;border-color:transparent}
+  input,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text);margin-top:8px}
+  .small{font-size:13px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -26,31 +38,63 @@
   <div id="loginTab">
     <div class="card" style="text-align:center">
       <h2>Bem-vindo ao Sui Hub</h2>
-      <p class="muted">Faça login para acessar o script loader — Demonfall</p>
+      <p class="small">Faça login para acessar o script loader — Demonfall</p>
       <button id="loginBtn" class="btn btn-primary">Login Google</button>
     </div>
   </div>
 
-  <!-- ABA SCRIPT (inicialmente escondida) -->
+  <!-- ABA SCRIPT -->
   <div id="scriptTab" class="hidden">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h2>Sui Hub — Demonfall</h2>
-        <div class="small muted">Leve • Rápido • Suporte</div>
-      </div>
-      <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.04)">
-      <pre id="codeArea">loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()</pre>
-      <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center">
+      <h2>Sui Hub — Demonfall</h2>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button id="avatarBtn" class="btn btn-ghost">Perfil</button>
         <button id="copyBtn" class="btn btn-primary">Copiar</button>
         <button id="downloadBtn" class="btn btn-ghost">Baixar</button>
         <button id="viewBtn" class="btn btn-ghost">Visualizar</button>
-        <div id="statusMsg" class="small muted" style="margin-left:12px"></div>
       </div>
     </div>
+    <pre id="codeArea" style="margin-top:12px;">loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()</pre>
+    <div id="statusMsg" class="small" style="margin-top:8px"></div>
   </div>
 </div>
 
-<!-- Firebase + App JS -->
+<!-- Drawer -->
+<div id="drawer" class="drawer">
+  <button id="closeDrawer" class="close">✕</button>
+  <div class="pf-row">
+    <img id="drawerPfp" src="https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png" alt="avatar">
+    <div>
+      <div id="drawerName" style="font-weight:700">Convidado</div>
+      <div class="small" id="drawerDate"></div>
+    </div>
+    <div style="margin-left:auto" id="verifiedBadge"><span class="verified" id="verifiedSpan" style="display:none">VERIFICADO</span></div>
+  </div>
+  <div id="drawerBio" class="small" style="margin-top:8px">Faça login para editar perfil.</div>
+  <div class="tabs" style="margin-top:12px">
+    <button class="tabBtn active" data-tab="profileTab">Perfil</button>
+    <button class="tabBtn" data-tab="editTab">Editar Perfil</button>
+  </div>
+  <div id="profileTab" style="margin-top:12px">
+    <div><b>Nome:</b> <span id="profileName">—</span></div>
+    <div><b>Bio:</b> <span id="profileBio">—</span></div>
+    <div><b>Entrou:</b> <span id="profileDate">—</span></div>
+    <div style="margin-top:12px">
+      <label><input type="checkbox" id="themeToggle"> Tema claro</label>
+    </div>
+  </div>
+  <div id="editTab" class="hidden" style="margin-top:12px">
+    <label>Nome</label><input id="editName" type="text">
+    <label>Bio</label><textarea id="editBio" rows="4"></textarea>
+    <label>Foto</label><input id="editPhoto" type="file" accept="image/*">
+    <div style="margin-top:8px;display:flex;gap:8px">
+      <button id="saveProfileBtn" class="btn btn-primary">Salvar</button>
+      <button id="cancelEditBtn" class="btn btn-ghost">Cancelar</button>
+    </div>
+    <div id="editMsg" class="small" style="margin-top:8px"></div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
@@ -65,7 +109,6 @@ const firebaseConfig = {
   appId: "1:590135716171:web:521bbb28c8ec4eae2e60ce",
   measurementId: "G-G9YXZJV7LE"
 };
-
 const OWNER_UID = "gV06HRh6saXgXkPWG2FME2Or1";
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -76,43 +119,127 @@ const provider = new GoogleAuthProvider();
 const loginBtn = document.getElementById("loginBtn");
 const loginTab = document.getElementById("loginTab");
 const scriptTab = document.getElementById("scriptTab");
+const avatarBtn = document.getElementById("avatarBtn");
+const drawer = document.getElementById("drawer");
+const closeDrawer = document.getElementById("closeDrawer");
+const drawerPfp = document.getElementById("drawerPfp");
+const drawerName = document.getElementById("drawerName");
+const drawerBio = document.getElementById("drawerBio");
+const drawerDate = document.getElementById("drawerDate");
+const verifiedSpan = document.getElementById("verifiedSpan");
+const themeToggle = document.getElementById("themeToggle");
+const tabBtns = Array.from(document.querySelectorAll(".tabBtn"));
+const profileTab = document.getElementById("profileTab");
+const editTab = document.getElementById("editTab");
+const editName = document.getElementById("editName");
+const editBio = document.getElementById("editBio");
+const editPhoto = document.getElementById("editPhoto");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
+const editMsg = document.getElementById("editMsg");
 const codeArea = document.getElementById("codeArea");
 const copyBtn = document.getElementById("copyBtn");
 const downloadBtn = document.getElementById("downloadBtn");
 const viewBtn = document.getElementById("viewBtn");
 const statusMsg = document.getElementById("statusMsg");
 
-// Funções utilitárias
-function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// Theme
+themeToggle.addEventListener("change", ()=>{
+  const t = themeToggle.checked ? "light" : "dark";
+  if(t==="light") document.body.classList.add("light"); else document.body.classList.remove("light");
+  localStorage.setItem("theme", t);
+});
+const savedTheme = localStorage.getItem("theme");
+if(savedTheme==="light") themeToggle.checked=true, document.body.classList.add("light");
+
+// Tabs in drawer
+tabBtns.forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    tabBtns.forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    const t = btn.dataset.tab;
+    profileTab.classList.toggle("hidden", t!=="profileTab");
+    editTab.classList.toggle("hidden", t!=="editTab");
+  });
+});
+
+// Drawer
+avatarBtn.addEventListener("click", ()=> drawer.classList.toggle("open"));
+closeDrawer.addEventListener("click", ()=> drawer.classList.remove("open"));
 
 // Script actions
-copyBtn.addEventListener("click", ()=> {
-  navigator.clipboard.writeText(codeArea.textContent).then(()=>{ statusMsg.textContent = "Copiado!"; setTimeout(()=>statusMsg.textContent="",1200);});
-});
-downloadBtn.addEventListener("click", ()=> {
-  const blob = new Blob([codeArea.textContent], { type: "text/plain" });
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "sui-hub-demonfall.lua"; document.body.appendChild(a); a.click(); a.remove();
-});
-viewBtn.addEventListener("click", ()=> {
-  const w = window.open(); w.document.write("<pre style='white-space:pre-wrap'>"+escapeHtml(codeArea.textContent)+"</pre>"); w.document.close();
-});
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+copyBtn.addEventListener("click", ()=> { navigator.clipboard.writeText(codeArea.textContent).then(()=>{ statusMsg.textContent="Copiado!"; setTimeout(()=>statusMsg.textContent="",1200); }); });
+downloadBtn.addEventListener("click", ()=> { const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([codeArea.textContent],{type:"text/plain"})); a.download="sui-hub-demonfall.lua"; document.body.appendChild(a); a.click(); a.remove(); });
+viewBtn.addEventListener("click", ()=> { const w=window.open(); w.document.write("<pre style='white-space:pre-wrap'>"+escapeHtml(codeArea.textContent)+"</pre>"); w.document.close(); });
 
 // Login
 loginBtn.onclick = ()=> signInWithPopup(auth, provider).catch(e=>alert("Erro login: "+e.message));
 
+let currentUser = null;
+
 onAuthStateChanged(auth, async (user)=>{
   if(user){
-    // login bem-sucedido: mostra aba do script
+    currentUser=user;
     loginTab.classList.add("hidden");
     scriptTab.classList.remove("hidden");
-    // aqui você pode carregar o perfil ou outras ações
-    console.log("Usuário logado:", user.displayName, user.uid);
+    await loadUserProfile(user);
   } else {
-    // usuário não logado
+    currentUser=null;
     loginTab.classList.remove("hidden");
     scriptTab.classList.add("hidden");
+    drawer.classList.remove("open");
+    drawerName.textContent="Convidado";
+    drawerBio.textContent="Faça login para editar perfil.";
+    drawerPfp.src="https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
+    drawerDate.textContent="";
+    verifiedSpan.style.display="none";
   }
 });
+
+// Load user profile
+async function loadUserProfile(user){
+  if(!user) return;
+  const ref=doc(db,"users",user.uid);
+  const snap=await getDoc(ref);
+  let data;
+  if(snap.exists()) data=snap.data();
+  else { data={name:user.displayName||"",bio:"",photo:user.photoURL||"",created:user.metadata.creationTime||new Date().toISOString()}; await setDoc(ref,data,{merge:true}); }
+  drawerName.textContent=data.name||user.displayName;
+  drawerBio.textContent=data.bio||"";
+  drawerPfp.src=data.photo||user.photoURL;
+  drawerDate.textContent="Entrou em "+new Date(data.created).toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});
+  if(user.uid===OWNER_UID) verifiedSpan.style.display="inline-block"; else verifiedSpan.style.display="none";
+  editName.value=data.name||user.displayName;
+  editBio.value=data.bio||"";
+}
+
+// Edit profile
+cancelEditBtn.addEventListener("click", ()=> { editMsg.textContent=""; editPhoto.value=""; });
+saveProfileBtn.addEventListener("click", async ()=>{
+  if(!currentUser){ editMsg.textContent="Faça login"; return; }
+  editMsg.textContent="Salvando...";
+  const newName=editName.value.trim();
+  const newBio=editBio.value.trim();
+  const file=editPhoto.files[0];
+  if(!newName){ editMsg.textContent="Nome obrigatório"; return; }
+  const q=query(collection(db,"users"),where("name","==",newName));
+  const qSnap=await getDocs(q);
+  let conflict=false;
+  qSnap.forEach(d=>{ if(d.id!==currentUser.uid) conflict=true; });
+  if(conflict){ editMsg.textContent="Nome já existe"; return; }
+  let photoData=null;
+  if(file){ if(file.size>1024*1024){ editMsg.textContent="Foto muito grande"; return; }
+  photoData=await readFileAsDataURL(file);}
+  const uRef=doc(db,"users",currentUser.uid);
+  const payload={name:newName,bio:newBio}; if(photoData) payload.photo=photoData;
+  await setDoc(uRef,payload,{merge:true});
+  await loadUserProfile(currentUser);
+  editMsg.textContent="Salvo!";
+  editPhoto.value="";
+});
+
+function readFileAsDataURL(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); }); }
 </script>
 </body>
 </html>
