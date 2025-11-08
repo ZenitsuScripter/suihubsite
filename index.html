@@ -21,28 +21,26 @@
   .btn{appearance:none;border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
   .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
   .btn-primary{background:linear-gradient(90deg,var(--accent),#5b21b6);color:#fff}
-
-  /* avatar */
-  #avatarBtn{width:40px;height:40px;border-radius:50%;overflow:hidden;display:grid;place-items:center;cursor:pointer;border:2px solid rgba(124,58,237,0.35);z-index:1000;transition: transform 0.2s, opacity 0.2s;}
-  #avatarBtn.hidden{opacity:0;transform:scale(0);pointer-events:none;}
-  #avatarBtn img{width:100%;height:100%;object-fit:cover}
-
-  /* drawer */
-  .drawer{position:fixed;top:0;right:-380px;width:360px;height:100%;background:var(--card);box-shadow:-10px 0 50px rgba(0,0,0,0.6);transition:right 0.3s ease;z-index:1001;padding:18px;display:flex;flex-direction:column;gap:12px;}
-  .drawer.open{right:0;}
+  .layout{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:18px}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--glass),var(--glass2));border-radius:12px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.03)}
+  .scriptHeader{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  pre{background:#020617;padding:14px;border-radius:8px;color:var(--text);overflow:auto;font-family:ui-monospace,Consolas,monospace}
+  .avatarBtn{width:40px;height:40px;border-radius:50%;overflow:hidden;display:grid;place-items:center;cursor:pointer;border:2px solid rgba(124,58,237,0.35)}
+  .avatarBtn img{width:100%;height:100%;object-fit:cover}
+  .drawer{position:fixed;top:0;right:-360px;width:360px;height:100%;background:var(--card);box-shadow:-10px 0 50px rgba(0,0,0,0.6);transition:right .28s;z-index:9999;padding:18px;display:flex;flex-direction:column;gap:12px}
+  .drawer.open{right:0}
   .drawer .close{align-self:flex-end;background:transparent;border:0;color:var(--muted);cursor:pointer}
-  .drawer .pf-row{display:flex;gap:12px;align-items:center}
-  .drawer .pf-row img{width:64px;height:64px;border-radius:50%;object-fit:cover}
-  .drawer .tabs{display:flex;gap:6px;margin-top:12px}
-  .drawer .tabBtn{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer}
-  .drawer .tabBtn.active{background:linear-gradient(90deg,var(--accent),#5b21b6);color:#fff;border-color:transparent}
-
-  /* edit profile professional */
-  .editSection{display:none;flex-direction:column;gap:12px;}
-  .editSection.active{display:flex;}
-  .editSection input, .editSection textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text)}
-  .editSection .small{font-size:13px;color:var(--muted)}
-  .editSection button{width:auto}
+  .pf-row{display:flex;gap:12px;align-items:center}
+  .pf-row img{width:64px;height:64px;border-radius:999px;object-fit:cover}
+  .tabs{display:flex;gap:6px;margin-top:6px}
+  .tabBtn{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer}
+  .tabBtn.active{background:linear-gradient(90deg,var(--accent),#5b21b6);color:#fff;border-color:transparent}
+  .editSection{display:none;flex-direction:column;gap:8px}
+  .editSection.active{display:flex}
+  input[type=file]{display:block}
+  input,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text);margin-top:8px}
+  .small{font-size:13px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -55,6 +53,7 @@
         <div class="small muted">Script loader — Demonfall</div>
       </div>
     </div>
+
     <div class="rightControls">
       <a href="https://discord.gg/8zZ49gykYK" target="_blank" class="btn btn-ghost">Discord</a>
       <button id="loginBtn" class="btn btn-primary">Login Google</button>
@@ -66,29 +65,57 @@
   <div class="layout">
     <div>
       <div class="card">
-        <h2>Sui Hub — Demonfall</h2>
-        <div class="small muted">Versão 1.8 — Feito por Suiryuu</div>
+        <div class="scriptHeader">
+          <div>
+            <h2 style="margin:0">Sui Hub — Demonfall</h2>
+            <div class="small muted">Versão 1.8 — Feito por Suiryuu</div>
+          </div>
+          <div class="small muted">Leve • Rápido • Suporte</div>
+        </div>
+
         <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.04)">
         <pre id="codeArea">loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()</pre>
+
         <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
           <button id="copyBtn" class="btn btn-primary">Copiar</button>
           <button id="downloadBtn" class="btn btn-ghost">Baixar</button>
           <button id="viewBtn" class="btn btn-ghost">Visualizar</button>
           <div id="statusMsg" class="small muted" style="margin-left:12px"></div>
         </div>
+
+        <div style="margin-top:16px">
+          <h4 style="margin:0 0 8px 0">Principais features</h4>
+          <div class="features">
+            <div class="feature"><b>Low Graphics</b><div class="small muted">Reduce sombras e partículas.</div></div>
+            <div class="feature"><b>Auto Pickup</b><div class="small muted">Coleta drops automaticamente.</div></div>
+            <div class="feature"><b>Teleport Mode</b><div class="small muted">Aura + teleporte otimizado.</div></div>
+            <div class="feature"><b>Hotkeys</b><div class="small muted">Atalhos configuráveis.</div></div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <aside>
+      <div class="card">
+        <h4 style="margin:0 0 8px 0">Sobre</h4>
+        <div class="small muted">Página oficial do Sui Hub — Demonfall. Use com responsabilidade.</div>
+        <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.04)">
+        <div><b>Versão</b> 1.8</div>
+        <div style="margin-top:8px"><b>Autor</b> Suiryuu</div>
+      </div>
+    </aside>
   </div>
 </div>
 
 <!-- Drawer -->
 <div id="drawer" class="drawer">
   <button id="closeDrawer" class="close">✕</button>
+  
   <div class="pf-row">
     <img id="drawerPfp" src="https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png" alt="avatar">
     <div>
       <div id="drawerName" style="font-weight:700">Convidado</div>
-      <div class="small muted" id="drawerEmail"></div>
+      <div class="small muted" id="drawerEmail">—</div>
     </div>
   </div>
 
@@ -98,11 +125,18 @@
   </div>
 
   <div id="profileTab" class="editSection active">
-    <div><b>Nome:</b> <span id="profileName">—</span></div>
-    <div><b>Email:</b> <span id="profileEmail">—</span></div>
-    <div class="small">Opções:</div>
-    <button id="goEditBtn" class="btn btn-primary">Editar Perfil</button>
-    <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="themeToggle"> Tema claro</label>
+    <label>Nome:</label>
+    <div id="profileName" style="margin-bottom:8px">—</div>
+    
+    <label>Email:</label>
+    <div id="profileEmail" style="margin-bottom:12px">—</div>
+
+    <label>Tema:</label>
+    <div style="margin-bottom:12px">
+      <input type="checkbox" id="themeToggle"> Tema claro
+    </div>
+
+    <button id="goEditBtn" class="btn btn-primary" style="margin-bottom:6px">Editar Perfil</button>
     <button id="logoutFromDrawer" class="btn btn-ghost">Desconectar</button>
   </div>
 
@@ -110,142 +144,140 @@
     <h3>Editar Perfil</h3>
     <label>Nome:</label>
     <input id="editName" type="text" placeholder="Seu nome público">
+    
     <label>Biografia:</label>
     <textarea id="editBio" rows="4" placeholder="Sua bio"></textarea>
+    
     <label>Foto (max 500kb):</label>
     <input id="editPhoto" type="file" accept="image/*">
-    <div style="display:flex;gap:8px">
+    
+    <div style="display:flex;gap:8px;margin-top:8px">
       <button id="saveProfileBtn" class="btn btn-primary">Salvar</button>
       <button id="backProfileBtn" class="btn btn-ghost">Voltar</button>
     </div>
-    <div id="editMsg" class="small muted"></div>
+    <div id="editMsg" class="small muted" style="margin-top:6px"></div>
   </div>
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBG3D3ieH0f-3608DcWnIIfQS_n5tP7EHE",
-    authDomain: "sui-hub.firebaseapp.com",
-    projectId: "sui-hub",
-    storageBucket: "sui-hub.firebasestorage.app",
-    messagingSenderId: "590135716171",
-    appId: "1:590135716171:web:521bbb28c8ec4eae2e60ce",
-    measurementId: "G-G9YXZJV7LE"
-  };
-  const OWNER_UID = "gV06HRh6saXgXkPWG2FME2Or1";
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
+const firebaseConfig = {
+  apiKey: "AIzaSyBG3D3ieH0f-3608DcWnIIfQS_n5tP7EHE",
+  authDomain: "sui-hub.firebaseapp.com",
+  projectId: "sui-hub",
+  storageBucket: "sui-hub.firebasestorage.app",
+  messagingSenderId: "590135716171",
+  appId: "1:590135716171:web:521bbb28c8ec4eae2e60ce",
+  measurementId: "G-G9YXZJV7LE"
+};
 
-  // DOM
-  const loginBtn=document.getElementById("loginBtn");
-  const logoutBtn=document.getElementById("logoutBtn");
-  const avatarBtn=document.getElementById("avatarBtn");
-  const avatarImg=document.getElementById("avatarImg");
-  const drawer=document.getElementById("drawer");
-  const closeDrawer=document.getElementById("closeDrawer");
-  const drawerPfp=document.getElementById("drawerPfp");
-  const drawerName=document.getElementById("drawerName");
-  const drawerEmail=document.getElementById("drawerEmail");
+const OWNER_UID = "gV06HRh6saXgXkPWG2FME2Or1";
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
 
-  const tabBtns=Array.from(document.querySelectorAll(".tabBtn"));
-  const profileTab=document.getElementById("profileTab");
-  const editTab=document.getElementById("editTab");
-  const goEditBtn=document.getElementById("goEditBtn");
-  const backProfileBtn=document.getElementById("backProfileBtn");
+// DOM
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const avatarBtn = document.getElementById("avatarBtn");
+const avatarImg = document.getElementById("avatarImg");
+const drawer = document.getElementById("drawer");
+const closeDrawer = document.getElementById("closeDrawer");
+const drawerPfp = document.getElementById("drawerPfp");
+const drawerName = document.getElementById("drawerName");
+const drawerEmail = document.getElementById("drawerEmail");
+const themeToggle = document.getElementById("themeToggle");
+const tabBtns = Array.from(document.querySelectorAll(".tabBtn"));
+const profileTab = document.getElementById("profileTab");
+const editTab = document.getElementById("editTab");
+const editName = document.getElementById("editName");
+const editBio = document.getElementById("editBio");
+const editPhoto = document.getElementById("editPhoto");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
+const backProfileBtn = document.getElementById("backProfileBtn");
+const goEditBtn = document.getElementById("goEditBtn");
 
-  const editName=document.getElementById("editName");
-  const editBio=document.getElementById("editBio");
-  const editPhoto=document.getElementById("editPhoto");
-  const saveProfileBtn=document.getElementById("saveProfileBtn");
-  const editMsg=document.getElementById("editMsg");
+// Drawer open/close
+avatarBtn.addEventListener("click", ()=> drawer.classList.toggle("open"));
+closeDrawer.addEventListener("click", ()=> drawer.classList.remove("open"));
 
-  const themeToggle=document.getElementById("themeToggle");
-
-  // Theme
-  function loadTheme(){ const t=localStorage.getItem("theme")||"dark"; if(t==="light") document.body.classList.add("light"); themeToggle.checked=(t==="light"); }
-  function saveTheme(){ const t=themeToggle.checked?"light":"dark"; localStorage.setItem("theme",t); document.body.classList.toggle("light",t==="light"); }
-  themeToggle.addEventListener("change",saveTheme); loadTheme();
-
-  // Tabs
-  tabBtns.forEach(btn=>btn.addEventListener("click",()=>{
+// Tabs
+tabBtns.forEach(btn=>{
+  btn.addEventListener("click", ()=>{
     tabBtns.forEach(b=>b.classList.remove("active"));
     btn.classList.add("active");
-    const t=btn.dataset.tab;
-    profileTab.classList.toggle("active",t==="profileTab");
-    editTab.classList.toggle("active",t==="editTab");
-  }));
-
-  // Drawer open/close
-  avatarBtn.addEventListener("click",()=>{drawer.classList.add("open"); avatarBtn.classList.add("hidden");});
-  closeDrawer.addEventListener("click",()=>{drawer.classList.remove("open"); avatarBtn.classList.remove("hidden");});
-
-  // Login/logout
-  loginBtn.onclick=()=>signInWithPopup(auth,provider).catch(e=>alert(e.message));
-  logoutBtn.onclick=()=>signOut(auth).catch(console.log);
-  document.getElementById("logoutFromDrawer").onclick=()=>signOut(auth).catch(console.log);
-
-  // Profile navigation
-  goEditBtn.addEventListener("click",()=>{profileTab.classList.remove("active"); editTab.classList.add("active"); tabBtns.forEach(b=>b.classList.toggle("active",b.dataset.tab==="editTab"));});
-  backProfileBtn.addEventListener("click",()=>{editTab.classList.remove("active"); profileTab.classList.add("active"); tabBtns.forEach(b=>b.classList.toggle("active",b.dataset.tab==="profileTab"));});
-
-  let currentUser=null;
-  onAuthStateChanged(auth,async(u)=>{
-    currentUser=u;
-    if(u){
-      loginBtn.style.display="none"; logoutBtn.style.display=""; avatarBtn.style.display="";
-      avatarImg.src=u.photoURL;
-      await loadUserProfile(u);
-    } else {
-      loginBtn.style.display=""; logoutBtn.style.display="none"; avatarBtn.style.display="none";
-      drawerName.textContent="Convidado"; drawerEmail.textContent="";
-      drawerPfp.src="https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
-    }
+    if(btn.dataset.tab==="profileTab"){ profileTab.classList.add("active"); editTab.classList.remove("active"); }
+    else { profileTab.classList.remove("active"); editTab.classList.add("active"); }
   });
+});
 
-  async function loadUserProfile(user){
-    if(!user) return;
-    const ref=doc(db,"users",user.uid);
-    const snap=await getDoc(ref);
-    let data;
-    if(snap.exists()){data=snap.data(); if(!data.created) data.created=new Date().toISOString();}
-    else{data={name:user.displayName||"",bio:"",photo:user.photoURL||"",created:new Date().toISOString()}; await setDoc(ref,data,{merge:true});}
-    drawerName.textContent=data.name||user.displayName;
-    drawerEmail.textContent=user.email||"";
-    drawerPfp.src=data.photo||user.photoURL;
-    editName.value=data.name||user.displayName;
-    editBio.value=data.bio||"";
+// Theme
+themeToggle.addEventListener("change", ()=>{
+  const t = themeToggle.checked ? "light" : "dark";
+  localStorage.setItem("theme", t);
+  if(t==="light") document.body.classList.add("light"); else document.body.classList.remove("light");
+});
+if(localStorage.getItem("theme")==="light") themeToggle.checked=true,document.body.classList.add("light");
+
+// Auth
+loginBtn.onclick = ()=> signInWithPopup(auth, provider).catch(e=>alert("Erro login: "+e.message));
+logoutBtn.onclick = ()=> signOut(auth).catch(console.log);
+document.getElementById("logoutFromDrawer").onclick = ()=> signOut(auth).catch(console.log);
+
+let currentUser = null;
+onAuthStateChanged(auth, async (user)=>{
+  currentUser = user;
+  if(user){
+    loginBtn.style.display="none"; logoutBtn.style.display=""; avatarBtn.style.display="";
+    avatarImg.src=user.photoURL||avatarImg.src;
+    drawerEmail.textContent=user.email||"—";
+    await loadUserProfile(user);
+  } else {
+    loginBtn.style.display=""; logoutBtn.style.display="none"; avatarBtn.style.display="none"; drawer.classList.remove("open");
+    drawerName.textContent="Convidado"; drawerEmail.textContent="—"; drawerPfp.src="https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
   }
+});
 
-  saveProfileBtn.addEventListener("click",async()=>{
-    if(!currentUser){ editMsg.textContent="Faça login"; return;}
-    editMsg.textContent="Salvando...";
-    const newName=editName.value.trim(); const newBio=editBio.value.trim(); const file=editPhoto.files[0];
-    if(!newName){ editMsg.textContent="Nome obrigatório"; return;}
-    if(file && file.size>500*1024){ editMsg.textContent="Foto maior que 500kb"; return;}
-    let photoData=null; if(file){ photoData=await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); }); }
-    const uRef=doc(db,"users",currentUser.uid);
-    const payload={name:newName,bio:newBio}; if(photoData) payload.photo=photoData;
-    await setDoc(uRef,payload,{merge:true});
-    await loadUserProfile(currentUser);
-    editMsg.textContent="Salvo!"; editPhoto.value="";
-  });
+// Load profile
+async function loadUserProfile(user){
+  if(!user) return;
+  const ref = doc(db,"users",user.uid);
+  const snap = await getDoc(ref);
+  let data;
+  if(snap.exists()) data = snap.data();
+  else data={name:user.displayName||"",bio:"",photo:user.photoURL||""}, await setDoc(ref,data,{merge:true});
+  drawerName.textContent=data.name||user.displayName||"Usuário";
+  drawerPfp.src=data.photo||user.photoURL||drawerPfp.src;
+  editName.value=data.name||user.displayName||"";
+  editBio.value=data.bio||"";
+}
 
-  // Script buttons
-  const copyBtn=document.getElementById("copyBtn");
-  const downloadBtn=document.getElementById("downloadBtn");
-  const viewBtn=document.getElementById("viewBtn");
-  const codeArea=document.getElementById("codeArea");
-  const statusMsg=document.getElementById("statusMsg");
+// Edit profile
+goEditBtn.onclick=()=>{ profileTab.classList.remove("active"); editTab.classList.add("active"); tabBtns.forEach(b=>b.classList.remove("active")); tabBtns[1].classList.add("active"); };
+backProfileBtn.onclick=()=>{ profileTab.classList.add("active"); editTab.classList.remove("active"); tabBtns.forEach(b=>b.classList.remove("active")); tabBtns[0].classList.add("active"); };
 
-  copyBtn.addEventListener("click",()=>{navigator.clipboard.writeText(codeArea.textContent).then(()=>{statusMsg.textContent="Copiado!"; setTimeout(()=>statusMsg.textContent="",1200);});});
-  downloadBtn.addEventListener("click",()=>{const blob=new Blob([codeArea.textContent],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="sui-hub-demonfall.lua"; document.body.appendChild(a); a.click(); a.remove();});
-  viewBtn.addEventListener("click",()=>{const w=window.open(); w.document.write("<pre style='white-space:pre-wrap'>"+codeArea.textContent+"</pre>"); w.document.close();});
+saveProfileBtn.onclick=async ()=>{
+  if(!currentUser){ alert("Faça login"); return; }
+  const newName=editName.value.trim(), newBio=editBio.value.trim(), file=editPhoto.files[0];
+  if(!newName){ alert("Nome obrigatório"); return; }
+  if(file && file.size>500*1024){ alert("Foto muito grande (max 500kb)"); return; }
+
+  let photoData=null;
+  if(file){ photoData=await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); }); }
+
+  const qSnap = await getDocs(query(collection(db,"users"),where("name","==",newName)));
+  if(!qSnap.empty && qSnap.docs.some(d=>d.id!==currentUser.uid)){ alert("Nome já existe"); return; }
+
+  const payload={name:newName,bio:newBio}; if(photoData) payload.photo=photoData;
+  await setDoc(doc(db,"users",currentUser.uid),payload,{merge:true});
+  await loadUserProfile(currentUser);
+  editPhoto.value="";
+  alert("Perfil salvo!");
+};
 </script>
 </body>
 </html>
