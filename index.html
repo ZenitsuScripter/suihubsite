@@ -1,303 +1,381 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sui Hub Script Demonfall — v1.8</title>
-  <meta name="description" content="Página oficial do Sui Hub — Demonfall. Copie o script, veja features e entre no Discord." />
-  <style>
-    :root{
-      --bg:#0f1724;
-      --card:#0b1220;
-      --muted:#9aa4b2;
-      --accent:#7c3aed;
-      --glass: rgba(255,255,255,0.03);
-      --glass-2: rgba(255,255,255,0.02);
-      color-scheme: dark;
-    }
-    *{box-sizing:border-box}
-    html,body{
-      height:100%;
-      margin:0;
-      font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;
-      background:linear-gradient(180deg,#061022 0%,var(--bg) 100%);
-      color:#e6eef6;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-    }
-    .container{
-      max-width:980px;
-      width:100%;
-      margin:0 auto;
-      padding:28px;
-    }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sui Hub Script Demonfall — v1.8</title>
+<meta name="description" content="Página oficial do Sui Hub — Demonfall. Copie o script, veja features e entre no Discord.">
+<style>
+:root{
+  --bg:#0f1724;
+  --card:#0b1220;
+  --muted:#9aa4b2;
+  --accent:#7c3aed;
+  --glass: rgba(255,255,255,0.03);
+  --glass-2: rgba(255,255,255,0.02);
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{
+  height:100%;
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;
+  background:linear-gradient(180deg,#061022 0%,var(--bg) 100%);
+  color:#e6eef6;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.container{
+  max-width:980px;
+  width:100%;
+  margin:0 auto;
+  padding:28px;
+}
 
-    header{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      text-align:center;
-      gap:12px;
-      margin-bottom:28px;
-    }
-    .brand{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:12px;
-    }
-    .logo{
-      width:56px;height:56px;border-radius:12px;
-      background:linear-gradient(135deg,var(--accent),#5b21b6);
-      display:grid;place-items:center;font-weight:700;font-size:18px;
-      box-shadow:0 6px 24px rgba(124,58,237,0.18);
-    }
-    h1{font-size:20px;margin:0}
-    h2{margin:4px 0 0;font-size:13px;color:var(--muted)}
+header{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:12px;
+  margin-bottom:28px;
+}
+.brand{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+}
+.logo{
+  width:56px;height:56px;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),#5b21b6);
+  display:grid;place-items:center;font-weight:700;font-size:18px;
+  box-shadow:0 6px 24px rgba(124,58,237,0.18);
+}
+h1{font-size:20px;margin:0}
+h2{margin:4px 0 0;font-size:13px;color:var(--muted)}
 
-    .discord,.loginBtn,.logoutBtn{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      text-decoration:none;
-      color:#fff;
-      padding:8px 12px;
-      border-radius:10px;
-      border:1px solid rgba(255,255,255,0.06);
-      background:rgba(88,101,242,0.09);
-      cursor:pointer;
-    }
+.discord,.loginBtn,.logoutBtn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  color:#fff;
+  padding:8px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.06);
+  background:rgba(88,101,242,0.09);
+  cursor:pointer;
+}
 
-    .profileCard{
-      margin-top:20px;
-      padding:14px;
-      border-radius:10px;
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.05);
-      display:none;
-    }
+.userBox{
+  margin-top:10px;
+  font-size:14px;
+  color:#e6eef6;
+  display:none;
+}
 
-    .profileRow{
-      display:flex;
-      gap:14px;
-      align-items:center;
-    }
+.card{
+  background:linear-gradient(180deg,var(--glass),var(--glass-2));
+  border-radius:14px;
+  padding:18px;
+  box-shadow:0 6px 30px rgba(2,6,23,0.6);
+  border:1px solid rgba(255,255,255,0.03)
+}
 
-    .pfp{
-      width:54px;
-      height:54px;
-      border-radius:50%;
-    }
+main{display:grid;grid-template-columns:1fr;gap:20px;margin-top:22px}
 
-    .bioBox{
-      margin-top:10px;
-      width:100%;
-      background:#020617;
-      border-radius:8px;
-      padding:6px;
-      color:#e6eef6;
-      border:1px solid rgba(255,255,255,0.1);
-      min-height:60px;
-      resize:vertical;
-    }
+.hero{padding:18px}
+.cta-row{display:flex;gap:12px;align-items:center;margin-top:14px;justify-content:center;}
 
-    .saveBio{
-      margin-top:6px;
-      padding:6px 14px;
-      border-radius:8px;
-      cursor:pointer;
-      background:linear-gradient(90deg,var(--accent),#5b21b6);
-      border:0;
-      color:white;
-      font-weight:600;
-    }
+.btn{appearance:none;border:0;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600;transition: transform 0.1s ease, background 0.2s ease;}
+.btn-primary{background:linear-gradient(90deg,var(--accent),#5b21b6);color:#fff}
+.btn:active{
+  transform: scale(0.96);
+  filter: brightness(1.2);
+}
 
-    .userBox{
-      margin-top:10px;
-      font-size:14px;
-      color:#e6eef6;
-      display:none;
-    }
+.small{font-size:13px;color:var(--muted)}
+.features{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
+.feature{
+  background:rgba(255,255,255,0.01);
+  padding:12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.02)
+}
+.feature b{display:block;margin-bottom:6px}
 
-    .card{
-      background:linear-gradient(180deg,var(--glass),var(--glass-2));
-      border-radius:14px;
-      padding:18px;
-      box-shadow:0 6px 30px rgba(2,6,23,0.6);
-      border:1px solid rgba(255,255,255,0.03)
-    }
+pre{
+  background:#020617;
+  padding:14px;
+  border-radius:10px;
+  overflow:auto;
+  margin:0;
+  font-family:ui-monospace,Menlo,Consolas,monospace;
+  font-size:13px;
+}
 
-    main{display:grid;grid-template-columns:1fr;gap:20px;margin-top:22px}
+footer{margin-top:26px;font-size:13px;color:var(--muted);display:flex;justify-content:center;gap:12px;align-items:center;flex-wrap:wrap;}
 
-    .hero{padding:18px}
-    .cta-row{display:flex;gap:12px;align-items:center;margin-top:14px;justify-content:center;}
+@media(max-width:900px){
+  main{grid-template-columns:1fr;}
+}
 
-    .btn{appearance:none;border:0;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600;transition: transform 0.1s ease, background 0.2s ease;}
-    .btn-primary{background:linear-gradient(90deg,var(--accent),#5b21b6);color:#fff}
-    .btn:active{
-      transform: scale(0.96);
-      filter: brightness(1.2);
-    }
+/* Avatar canto superior direito */
+.avatarBtn{
+  width:48px;height:48px;border-radius:50%;
+  position:fixed;
+  top:16px;
+  right:16px;
+  cursor:pointer;
+  border:2px solid var(--accent);
+  z-index:9999;
+  transition: transform 0.2s;
+}
+.avatarBtn:hover{transform:scale(1.1)}
 
-    .small{font-size:13px;color:var(--muted)}
-    pre{
-      background:#020617;
-      padding:14px;
-      border-radius:10px;
-      overflow:auto;
-      margin:0;
-      font-family:monospace;
-      font-size:13px;
-    }
-  </style>
+/* Painel do perfil */
+.profilePanel{
+  position:fixed;
+  top:0;
+  right:-350px;
+  width:320px;
+  height:100%;
+  background:var(--card);
+  padding:20px;
+  box-shadow:-4px 0 20px rgba(0,0,0,0.6);
+  transition:right 0.3s ease;
+  z-index:9998;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.profilePanel.open{right:0}
+
+.closePanel{
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:18px;
+  cursor:pointer;
+  position:absolute;
+  top:10px;
+  right:10px;
+}
+
+.pfp{
+  width:80px;height:80px;border-radius:50%;
+  align-self:center;
+  object-fit:cover;
+}
+
+.bioBox{
+  width:100%;
+  height:80px;
+  background:rgba(255,255,255,0.05);
+  border:none;
+  border-radius:8px;
+  padding:8px;
+  color:#fff;
+  resize:none;
+}
+.saveBio{
+  padding:8px;
+  border:none;
+  border-radius:8px;
+  background:var(--accent);
+  color:#fff;
+  cursor:pointer;
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="brand">
-        <div class="logo">SH</div>
-        <h1>Sui Hub Script Demonfall</h1>
-        <h2>Script loader oficial • Otimizado • Suporte no Discord</h2>
+<div class="container">
+  <header>
+    <div class="brand">
+      <div class="logo">SH</div>
+      <h1>Sui Hub Script Demonfall</h1>
+      <h2>Script loader oficial • Otimizado • Suporte no Discord</h2>
+    </div>
+
+    <a class="discord" href="https://discord.gg/8zZ49gykYK" target="_blank">Discord</a>
+
+    <button id="loginBtn" class="loginBtn">Login Google</button>
+    <button id="logoutBtn" class="logoutBtn" style="display:none;">Sair</button>
+    <div id="userBox" class="userBox">
+      Logado como: <span id="userName"></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="card hero">
+      <h3 style="margin:0 0 6px 0">Sobre este script</h3>
+      <p class="small">
+        Sui Hub — Demonfall é um loader otimizado para desempenho.  
+        Use com responsabilidade e siga as regras do servidor/jogo.
+      </p>
+
+      <pre id="codeArea">loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()</pre>
+
+      <div class="cta-row">
+        <button id="copyBtn" class="btn btn-primary">Copiar script</button>
+        <button id="downloadBtn" class="btn btn-primary">Baixar</button>
+        <button id="viewBtn" class="btn btn-primary">Visualizar</button>
       </div>
 
-      <a class="discord" href="https://discord.gg/8zZ49gykYK" target="_blank">Discord</a>
-
-      <button id="loginBtn" class="loginBtn">Login Google</button>
-      <button id="logoutBtn" class="logoutBtn" style="display:none;">Sair</button>
-    </header>
-
-    <main>
-      <section class="card hero">
-
-        <!-- PROFILE AREA ADDED -->
-        <div id="profileCard" class="profileCard">
-          <div class="profileRow">
-            <img id="pfp" class="pfp">
-            <div>
-              <div id="profName"></div>
-              <div id="profDate" class="small"></div>
-            </div>
-          </div>
-
-          <textarea id="bioBox" class="bioBox" placeholder="Escreva sua bio..."></textarea>
-          <button id="saveBio" class="saveBio">Salvar Bio</button>
+      <div style="margin-top:16px">
+        <h4 style="margin:0 0 8px 0">Principais features</h4>
+        <div class="features">
+          <div class="feature"><b>Low Graphics</b><span class="small">Reduz sombras/partículas para menos lag.</span></div>
+          <div class="feature"><b>Auto Pickup</b><span class="small">Coleta automática de drops.</span></div>
+          <div class="feature"><b>Teleport Mode</b><span class="small">Aura + teleporte otimizado.</span></div>
+          <div class="feature"><b>Hotkeys</b><span class="small">Atalhos configuráveis.</span></div>
         </div>
-        <!-- END PROFILE -->
+      </div>
 
-        <h3 style="margin:0 0 6px 0">Sobre este script</h3>
-        <p class="small">
-          Sui Hub — Demonfall é um loader otimizado para desempenho.  
-          Use com responsabilidade e siga as regras do servidor/jogo.
-        </p>
+      <footer>
+        <div>Versão: <strong>1.8</strong></div>
+        <div class="small">Feito por Suiryuu • © 2025</div>
+      </footer>
+    </section>
+  </main>
+</div>
 
-        <pre id="codeArea">loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()</pre>
+<!-- Avatar perfil -->
+<img id="avatarBtn" class="avatarBtn" src="" title="Perfil">
 
-        <div class="cta-row">
-          <button id="copyBtn" class="btn btn-primary">Copiar script</button>
-          <button id="downloadBtn" class="btn btn-primary">Baixar</button>
-          <button id="viewBtn" class="btn btn-primary">Visualizar</button>
-        </div>
+<!-- Painel do perfil -->
+<div id="profilePanel" class="profilePanel">
+  <button id="closePanel" class="closePanel">X</button>
+  <img id="pfp" class="pfp">
+  <h3 id="profName"></h3>
+  <p id="profDate" class="small"></p>
+  <textarea id="bioBox" class="bioBox" placeholder="Escreva sua bio..."></textarea>
+  <button id="saveBio" class="saveBio">Salvar Bio</button>
+</div>
 
-      </section>
-    </main>
-  </div>
+<!-- FIREBASE + SITE JS -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
-  <!-- FIREBASE -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc }
-      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyBG3D3ieH0f-3608DcWnIIfQS_n5tP7EHE",
+  authDomain: "sui-hub.firebaseapp.com",
+  projectId: "sui-hub",
+  storageBucket: "sui-hub.firebasestorage.app",
+  messagingSenderId: "590135716171",
+  appId: "1:590135716171:web:521bbb28c8ec4eae2e60ce",
+  measurementId: "G-G9YXZJV7LE"
+};
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBG3D3ieH0f-3608DcWnIIfQS_n5tP7EHE",
-      authDomain: "sui-hub.firebaseapp.com",
-      projectId: "sui-hub",
-      storageBucket: "sui-hub.firebasestorage.app",
-      messagingSenderId: "590135716171",
-      appId: "1:590135716171:web:521bbb28c8ec4eae2e60ce",
-      measurementId: "G-G9YXZJV7LE"
-    };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-    const db = getFirestore(app);
+window.onload = () => {
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const userBox = document.getElementById("userBox");
+  const userName = document.getElementById("userName");
+  const avatarBtn = document.getElementById("avatarBtn");
+  const pfp = document.getElementById("pfp");
+  const profName = document.getElementById("profName");
+  const profDate = document.getElementById("profDate");
+  const bioBox = document.getElementById("bioBox");
 
-    const loginBtn  = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const profileCard = document.getElementById("profileCard");
-    const pfp = document.getElementById("pfp");
-    const profName = document.getElementById("profName");
-    const profDate = document.getElementById("profDate");
-    const bioBox = document.getElementById("bioBox");
-    const saveBio = document.getElementById("saveBio");
+  loginBtn.onclick = () => { signInWithPopup(auth, provider).catch(console.log); };
+  logoutBtn.onclick = () => { signOut(auth).catch(console.log); };
 
-    loginBtn.onclick = () => signInWithPopup(auth, provider).catch(console.log);
-    logoutBtn.onclick = () => signOut(auth).catch(console.log);
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-flex";
+      userBox.style.display = "block";
+      userName.textContent = user.displayName;
 
-    onAuthStateChanged(auth, async (user)=>{
-      if(user){
-        loginBtn.style.display="none";
-        logoutBtn.style.display="inline-flex";
-        profileCard.style.display="block";
+      // Avatar
+      avatarBtn.src = user.photoURL;
+      avatarBtn.style.display = "block";
 
-        pfp.src = user.photoURL;
-        profName.textContent = user.displayName;
-        profDate.textContent = "Conta criada em: " + new Date(user.metadata.creationTime).toLocaleDateString();
+      // Painel
+      pfp.src = user.photoURL;
+      profName.textContent = user.displayName;
 
-        const ref = doc(db,"profiles",user.uid);
-        const snap = await getDoc(ref);
-        if(snap.exists()) bioBox.value=snap.data().bio||"";
-      } else {
-        loginBtn.style.display="inline-flex";
-        logoutBtn.style.display="none";
-        profileCard.style.display="none";
-      }
-    });
+      // Data de criação
+      const date = new Date(user.metadata.creationTime);
+      const options = {day:'2-digit', month:'long', year:'numeric'};
+      profDate.textContent = "Entrou em " + date.toLocaleDateString('pt-BR', options);
 
-    saveBio.onclick = async()=>{
-      const user = auth.currentUser;
-      if(!user) return;
-
-      const ref = doc(db,"profiles",user.uid);
-      await setDoc(ref,{ bio:bioBox.value },{ merge:true });
-    };
-  </script>
-
-  <!-- script copy/download/etc -->
-  <script>
-    const scriptText = 'loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()';
-    const codeArea = document.getElementById('codeArea');
-    codeArea.textContent = scriptText;
-
-    function flashButton(btn){
-      btn.style.filter = "brightness(1.4)";
-      setTimeout(()=>{ btn.style.filter = ""; }, 150);
+      // Bio
+      bioBox.value = localStorage.getItem("bio_" + user.uid) || "";
+    } else {
+      loginBtn.style.display = "inline-flex";
+      logoutBtn.style.display = "none";
+      userBox.style.display = "none";
+      avatarBtn.style.display = "none";
     }
+  });
+};
+</script>
 
-    copyBtn.onclick = ()=>{
-      navigator.clipboard.writeText(scriptText);
-      flashButton(copyBtn);
-    };
+<!-- SITE MAIN JS -->
+<script>
+const scriptText = 'loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()';
+const codeArea = document.getElementById('codeArea');
+codeArea.textContent = scriptText;
 
-    downloadBtn.onclick = ()=>{
-      const file = new Blob([scriptText],{ type:'text/plain' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(file);
-      a.download = "sui-hub-demonfall.lua";
-      a.click();
-      flashButton(downloadBtn);
-    };
+function flashButton(btn){
+  btn.style.filter = "brightness(1.4)";
+  setTimeout(()=>{ btn.style.filter = ""; }, 150);
+}
 
-    viewBtn.onclick = ()=>{
-      const w = window.open();
-      w.document.write("<pre>"+scriptText+"</pre>");
-      w.document.close();
-      flashButton(viewBtn);
-    };
-  </script>
+document.getElementById("copyBtn").onclick = ()=>{
+  navigator.clipboard.writeText(scriptText);
+  flashButton(copyBtn);
+};
+
+document.getElementById("downloadBtn").onclick = ()=>{
+  const file = new Blob([scriptText],{ type:'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file);
+  a.download = "sui-hub-demonfall.lua";
+  a.click();
+  flashButton(downloadBtn);
+};
+
+document.getElementById("viewBtn").onclick = ()=>{
+  const w = window.open();
+  w.document.write("<pre style='white-space:pre-wrap;font-family:monospace;padding:14px'>"+scriptText+"</pre>");
+  w.document.close();
+  flashButton(viewBtn);
+};
+
+// Proteções
+document.addEventListener("contextmenu", e=>e.preventDefault());
+document.addEventListener("keydown", function(e) {
+  if (e.key === "F12") e.preventDefault();
+  if ((e.ctrlKey||e.metaKey) && e.shiftKey && (e.key==="I"||e.key==="i")) e.preventDefault();
+  if ((e.ctrlKey||e.metaKey) && (e.key==="U"||e.key==="u")) e.preventDefault();
+  if ((e.ctrlKey||e.metaKey) && (e.key==="S"||e.key==="s")) e.preventDefault();
+});
+
+// Abrir/fechar painel
+const avatarBtn = document.getElementById("avatarBtn");
+const profilePanel = document.getElementById("profilePanel");
+const closePanel = document.getElementById("closePanel");
+
+avatarBtn.onclick = ()=> profilePanel.classList.add("open");
+closePanel.onclick = ()=> profilePanel.classList.remove("open");
+
+// Salvar bio
+document.getElementById("saveBio").onclick = ()=>{
+  const bio = document.getElementById("bioBox").value;
+  const user = firebase.auth().currentUser;
+  if(user) localStorage.setItem("bio_" + user.uid, bio);
+};
+</script>
 </body>
 </html>
