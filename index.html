@@ -503,7 +503,6 @@
             Discord
           </a>
           <button id="loginBtn" class="btn btn-primary">Login Google</button>
-          <button id="logoutBtn" class="btn btn-ghost" style="display:none">Sair</button>
           <div id="avatarBtn" class="avatar-btn">
             <img id="avatarImg" src="" alt="Avatar">
           </div>
@@ -531,7 +530,6 @@
         <div class="actions">
           <button id="copyBtn" class="btn btn-primary">📋 Copiar</button>
           <button id="downloadBtn" class="btn btn-ghost">💾 Baixar</button>
-          <button id="viewBtn" class="btn btn-ghost">👁️ Visualizar</button>
           <span id="statusMsg" class="status-msg">✓ Copiado!</span>
         </div>
       </div>
@@ -633,7 +631,6 @@
 
   // DOM Elements
   const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
   const avatarBtn = document.getElementById("avatarBtn");
   const avatarImg = document.getElementById("avatarImg");
   const drawer = document.getElementById("drawer");
@@ -664,7 +661,6 @@
   // Script Actions
   const copyBtn = document.getElementById("copyBtn");
   const downloadBtn = document.getElementById("downloadBtn");
-  const viewBtn = document.getElementById("viewBtn");
   const codeArea = document.getElementById("codeArea");
   const statusMsg = document.getElementById("statusMsg");
   
@@ -740,14 +736,12 @@
     
     if (user) {
       loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-flex";
       avatarBtn.classList.add("show");
       avatarImg.src = user.photoURL || "https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
       
       await loadUserProfile(user);
     } else {
       loginBtn.style.display = "inline-flex";
-      logoutBtn.style.display = "none";
       avatarBtn.classList.remove("show");
       
       drawerName.textContent = "Convidado";
@@ -876,26 +870,6 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  });
-
-  viewBtn.addEventListener("click", () => {
-    const newWindow = window.open();
-    newWindow.document.write(`
-      <html>
-        <head>
-          <title>Sui Hub - Código</title>
-          <style>
-            body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #e0e0e0; }
-            pre { white-space: pre-wrap; word-break: break-all; }
-          </style>
-        </head>
-        <body>
-          <h2>Sui Hub — Demonfall</h2>
-          <pre>${codeArea.textContent}</pre>
-        </body>
-      </html>
-    `);
-    newWindow.document.close();
   });
 </script>
 </body>
