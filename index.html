@@ -6,278 +6,897 @@
 <title>Sui Hub Site</title>
 <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 <style>
-  :root{
-    --bg:#071028; --card:#0b1220; --muted:#9aa4b2; --accent:#7c3aed; --glass:rgba(255,255,255,0.03);
-    --glass2:rgba(255,255,255,0.02); --text:#e6eef6;
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg: #0a0e1a;
+    --bg-secondary: #111827;
+    --card: #1a1f35;
+    --card-hover: #212842;
+    --text: #e5e7eb;
+    --text-secondary: #9ca3af;
+    --accent: #8b5cf6;
+    --accent-hover: #7c3aed;
+    --success: #10b981;
+    --border: rgba(139, 92, 246, 0.2);
+    --shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   }
-  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
-  body.light{--bg:#f6f8fb;--card:#ffffff;--muted:#6b7280;--text:#0b1220}
-  .wrap{max-width:1100px;margin:28px auto;padding:18px}
-  .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .brand{display:flex;align-items:center;gap:12px}
-  .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#5b21b6);display:grid;place-items:center;font-weight:700}
-  .siteTitle{font-weight:700;font-size:18px}
-  .rightControls{display:flex;align-items:center;gap:10px}
-  .btn{appearance:none;border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
-  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
-  .btn-primary{background:linear-gradient(90deg,var(--accent),#5b21b6);color:#fff}
-  .layout{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:18px}
-  @media(max-width:900px){.layout{grid-template-columns:1fr}}
-  .card{background:linear-gradient(180deg,var(--glass),var(--glass2));border-radius:12px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.03)}
-  .scriptHeader{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  pre{background:#020617;padding:14px;border-radius:8px;color:var(--text);overflow:auto;font-family:ui-monospace,Consolas,monospace}
-  .avatarBtn{width:40px;height:40px;border-radius:50%;overflow:hidden;display:grid;place-items:center;cursor:pointer;border:2px solid rgba(124,58,237,0.35)}
-  .avatarBtn img{width:100%;height:100%;object-fit:cover}
-  .drawer{position:fixed;top:0;right:-360px;width:360px;height:100%;background:var(--card);box-shadow:-10px 0 50px rgba(0,0,0,0.6);transition:right .28s;z-index:9999;padding:18px;display:flex;flex-direction:column;gap:12px}
-  .drawer.open{right:0}
-  .drawer .close{align-self:flex-end;background:transparent;border:0;color:var(--muted);cursor:pointer}
-  .pf-row{display:flex;gap:12px;align-items:center}
-  .pf-row img{width:64px;height:64px;border-radius:999px;object-fit:cover}
-  .tabs{display:flex;gap:6px;margin-top:6px}
-  .tabBtn{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer}
-  .tabBtn.active{background:linear-gradient(90deg,var(--accent),#5b21b6);color:#fff;border-color:transparent}
-  .editSection{display:none;flex-direction:column;gap:8px}
-  .editSection.active{display:flex}
-  input[type=file]{display:block}
-  input,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text);margin-top:8px}
-  .small{font-size:13px;color:var(--muted)}
+  
+  body.light {
+    --bg: #f9fafb;
+    --bg-secondary: #ffffff;
+    --card: #ffffff;
+    --card-hover: #f3f4f6;
+    --text: #111827;
+    --text-secondary: #6b7280;
+    --accent: #8b5cf6;
+    --accent-hover: #7c3aed;
+    --border: rgba(139, 92, 246, 0.3);
+    --shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  }
+  
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    transition: background 0.3s ease;
+  }
+  
+  /* Header */
+  .header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 20px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  }
+  
+  .brand-text h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  
+  .brand-text p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+  
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    color: white;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+  }
+  
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  
+  .btn-ghost:hover {
+    background: var(--card-hover);
+    color: var(--text);
+    border-color: var(--accent);
+  }
+  
+  .avatar-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    display: none;
+  }
+  
+  .avatar-btn.show {
+    display: block;
+  }
+  
+  .avatar-btn:hover {
+    transform: scale(1.05);
+  }
+  
+  .avatar-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* Main Content */
+  .main {
+    padding: 3rem 0;
+  }
+  
+  .script-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  
+  .script-header {
+    margin-bottom: 1.5rem;
+  }
+  
+  .script-header h2 {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .script-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+  
+  .tag {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--accent);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  
+  .code-container {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    position: relative;
+    overflow-x: auto;
+  }
+  
+  .code-container pre {
+    color: var(--text);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.875rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  
+  .status-msg {
+    color: var(--success);
+    font-size: 0.875rem;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .status-msg.show {
+    opacity: 1;
+  }
+  
+  /* Drawer */
+  .drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  
+  .drawer-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 100%;
+    max-width: 400px;
+    height: 100%;
+    background: var(--card);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+    z-index: 201;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .drawer.open {
+    right: 0;
+  }
+  
+  .drawer-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .drawer-header h3 {
+    font-size: 1.25rem;
+  }
+  
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+  
+  .close-btn:hover {
+    background: var(--card-hover);
+    color: var(--text);
+  }
+  
+  .drawer-content {
+    padding: 1.5rem;
+    flex: 1;
+  }
+  
+  .profile-section {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    align-items: center;
+  }
+  
+  .profile-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    object-fit: cover;
+  }
+  
+  .profile-info h4 {
+    font-size: 1.125rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .profile-info p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+  
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .tab-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+  }
+  
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  
+  .tab-content {
+    display: none;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+  }
+  
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  
+  .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  .info-item {
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+  }
+  
+  .info-item strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+  
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 1rem 0;
+  }
+  
+  .theme-toggle input {
+    cursor: pointer;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header-content {
+      gap: 0.75rem;
+    }
+    
+    .brand-text h1 {
+      font-size: 1.25rem;
+    }
+    
+    .brand-text p {
+      font-size: 0.75rem;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.8125rem;
+    }
+    
+    .script-card {
+      padding: 1.5rem;
+    }
+    
+    .drawer {
+      max-width: 100%;
+    }
+  }
+  
+  /* Loading Animation */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--text-secondary);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <div class="brand">
-      <div class="logo">SH</div>
-      <div>
-        <div class="siteTitle">Sui Hub Site</div>
-        <div class="small muted">Script loader — Demonfall</div>
-      </div>
-    </div>
-
-    <div class="rightControls">
-      <a href="https://discord.gg/8zZ49gykYK" target="_blank" class="btn btn-ghost">Discord</a>
-      <button id="loginBtn" class="btn btn-primary">Login Google</button>
-      <button id="logoutBtn" class="btn btn-ghost" style="display:none">Sair</button>
-      <div id="avatarBtn" class="avatarBtn" title="Perfil" style="display:none"><img id="avatarImg" src="https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png" alt="avatar"/></div>
-    </div>
-  </div>
-
-  <div class="layout">
-    <div>
-      <div class="card">
-        <div class="scriptHeader">
-          <div>
-            <h2 style="margin:0">Sui Hub — Demonfall</h2>
-            <div class="small muted">Versão 1.8 — Feito por Suiryuu</div>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <div class="brand">
+          <div class="logo">SH</div>
+          <div class="brand-text">
+            <h1>Sui Hub</h1>
+            <p>Script Loader — Demonfall</p>
           </div>
-          <div class="small muted">Leve • Rápido • Suporte</div>
         </div>
-
-        <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.04)">
-        <pre id="codeArea">loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()</pre>
-
-        <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
-          <button id="copyBtn" class="btn btn-primary">Copiar</button>
-          <button id="downloadBtn" class="btn btn-ghost">Baixar</button>
-          <button id="viewBtn" class="btn btn-ghost">Visualizar</button>
-          <div id="statusMsg" class="small muted" style="margin-left:12px"></div>
-        </div>
-
-        <div style="margin-top:16px">
-          <h4 style="margin:0 0 8px 0">Principais features</h4>
-          <div class="features">
-            <div class="feature"><b>Low Graphics</b><div class="small muted">Reduce sombras e partículas.</div></div>
-            <div class="feature"><b>Auto Pickup</b><div class="small muted">Coleta drops automaticamente.</div></div>
-            <div class="feature"><b>Teleport Mode</b><div class="small muted">Aura + teleporte otimizado.</div></div>
-            <div class="feature"><b>Hotkeys</b><div class="small muted">Atalhos configuráveis.</div></div>
+        
+        <div class="header-actions">
+          <a href="https://discord.gg/8zZ49gykYK" target="_blank" class="btn btn-ghost">
+            Discord
+          </a>
+          <button id="loginBtn" class="btn btn-primary">Login Google</button>
+          <button id="logoutBtn" class="btn btn-ghost" style="display:none">Sair</button>
+          <div id="avatarBtn" class="avatar-btn">
+            <img id="avatarImg" src="" alt="Avatar">
           </div>
         </div>
       </div>
     </div>
-
-    <aside>
-      <div class="card">
-        <h4 style="margin:0 0 8px 0">Sobre</h4>
-        <div class="small muted">Página oficial do Sui Hub — Demonfall. Use com responsabilidade.</div>
-        <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.04)">
-        <div><b>Versão</b> 1.8</div>
-        <div style="margin-top:8px"><b>Autor</b> Suiryuu</div>
-      </div>
-    </aside>
-  </div>
-</div>
-
-<!-- Drawer -->
-<div id="drawer" class="drawer">
-  <button id="closeDrawer" class="close">✕</button>
+  </header>
   
-  <div class="pf-row">
-    <img id="drawerPfp" src="https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png" alt="avatar">
-    <div>
-      <div id="drawerName" style="font-weight:700">Convidado</div>
-      <div class="small muted" id="drawerEmail">—</div>
+  <!-- Main Content -->
+  <main class="main">
+    <div class="container">
+      <div class="script-card">
+        <div class="script-header">
+          <h2>Sui Hub — Demonfall</h2>
+          <div class="script-meta">
+            <span class="tag">Versão 1.8</span>
+            <span>Criado por Suiryuu</span>
+          </div>
+        </div>
+        
+        <div class="code-container">
+          <pre id="codeArea">loadstring(game:HttpGet("https://haxhell.com/raw/56-demonfall-sui-hub"))()</pre>
+        </div>
+        
+        <div class="actions">
+          <button id="copyBtn" class="btn btn-primary">📋 Copiar</button>
+          <button id="downloadBtn" class="btn btn-ghost">💾 Baixar</button>
+          <button id="viewBtn" class="btn btn-ghost">👁️ Visualizar</button>
+          <span id="statusMsg" class="status-msg">✓ Copiado!</span>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Drawer Overlay -->
+  <div id="drawerOverlay" class="drawer-overlay"></div>
+  
+  <!-- Drawer -->
+  <div id="drawer" class="drawer">
+    <div class="drawer-header">
+      <h3>Perfil</h3>
+      <button id="closeDrawer" class="close-btn">✕</button>
+    </div>
+    
+    <div class="drawer-content">
+      <div class="profile-section">
+        <img id="drawerAvatar" class="profile-avatar" src="" alt="Avatar">
+        <div class="profile-info">
+          <h4 id="drawerName">Convidado</h4>
+          <p id="drawerEmail"></p>
+        </div>
+      </div>
+      
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="profileTab">Perfil</button>
+        <button class="tab-btn" data-tab="editTab">Editar</button>
+      </div>
+      
+      <!-- Profile Tab -->
+      <div id="profileTab" class="tab-content active">
+        <div class="info-item">
+          <strong>Nome</strong>
+          <span id="profileName">—</span>
+        </div>
+        <div class="info-item">
+          <strong>Email</strong>
+          <span id="profileEmail">—</span>
+        </div>
+        <div class="info-item">
+          <strong>Biografia</strong>
+          <span id="profileBio">—</span>
+        </div>
+        
+        <label class="theme-toggle">
+          <input type="checkbox" id="themeToggle">
+          <span>Tema Claro</span>
+        </label>
+        
+        <button id="logoutDrawer" class="btn btn-ghost" style="width: 100%">Desconectar</button>
+      </div>
+      
+      <!-- Edit Tab -->
+      <div id="editTab" class="tab-content">
+        <div class="form-group">
+          <label>Nome</label>
+          <input id="editName" type="text" placeholder="Seu nome público">
+        </div>
+        
+        <div class="form-group">
+          <label>Biografia</label>
+          <textarea id="editBio" placeholder="Conte algo sobre você..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Foto de Perfil (max 500kb)</label>
+          <input id="editPhoto" type="file" accept="image/*">
+        </div>
+        
+        <button id="saveProfileBtn" class="btn btn-primary" style="width: 100%">
+          Salvar Alterações
+        </button>
+        
+        <p id="editMsg" style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-secondary);"></p>
+      </div>
     </div>
   </div>
-
-  <div class="tabs">
-    <button class="tabBtn active" data-tab="profileTab">Perfil</button>
-    <button class="tabBtn" data-tab="editTab">Editar Perfil</button>
-  </div>
-
-  <div id="profileTab" class="editSection active">
-    <label>Nome:</label>
-    <div id="profileName" style="margin-bottom:8px">—</div>
-    
-    <label>Email:</label>
-    <div id="profileEmail" style="margin-bottom:12px">—</div>
-
-    <label>Tema:</label>
-    <div style="margin-bottom:12px">
-      <input type="checkbox" id="themeToggle"> Tema claro
-    </div>
-
-    <button id="goEditBtn" class="btn btn-primary" style="margin-bottom:6px">Editar Perfil</button>
-    <button id="logoutFromDrawer" class="btn btn-ghost">Desconectar</button>
-  </div>
-
-  <div id="editTab" class="editSection">
-    <h3>Editar Perfil</h3>
-    <label>Nome:</label>
-    <input id="editName" type="text" placeholder="Seu nome público">
-    
-    <label>Biografia:</label>
-    <textarea id="editBio" rows="4" placeholder="Sua bio"></textarea>
-    
-    <label>Foto (max 500kb):</label>
-    <input id="editPhoto" type="file" accept="image/*">
-    
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button id="saveProfileBtn" class="btn btn-primary">Salvar</button>
-      <button id="backProfileBtn" class="btn btn-ghost">Voltar</button>
-    </div>
-    <div id="editMsg" class="small muted" style="margin-top:6px"></div>
-  </div>
-</div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBG3D3ieH0f-3608DcWnIIfQS_n5tP7EHE",
-  authDomain: "sui-hub.firebaseapp.com",
-  projectId: "sui-hub",
-  storageBucket: "sui-hub.firebasestorage.app",
-  messagingSenderId: "590135716171",
-  appId: "1:590135716171:web:521bbb28c8ec4eae2e60ce",
-  measurementId: "G-G9YXZJV7LE"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyBG3D3ieH0f-3608DcWnIIfQS_n5tP7EHE",
+    authDomain: "sui-hub.firebaseapp.com",
+    projectId: "sui-hub",
+    storageBucket: "sui-hub.firebasestorage.app",
+    messagingSenderId: "590135716171",
+    appId: "1:590135716171:web:521bbb28c8ec4eae2e60ce",
+    measurementId: "G-G9YXZJV7LE"
+  };
 
-const OWNER_UID = "gV06HRh6saXgXkPWG2FME2Or1";
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
 
-// DOM
-const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const avatarBtn = document.getElementById("avatarBtn");
-const avatarImg = document.getElementById("avatarImg");
-const drawer = document.getElementById("drawer");
-const closeDrawer = document.getElementById("closeDrawer");
-const drawerPfp = document.getElementById("drawerPfp");
-const drawerName = document.getElementById("drawerName");
-const drawerEmail = document.getElementById("drawerEmail");
-const themeToggle = document.getElementById("themeToggle");
-const tabBtns = Array.from(document.querySelectorAll(".tabBtn"));
-const profileTab = document.getElementById("profileTab");
-const editTab = document.getElementById("editTab");
-const editName = document.getElementById("editName");
-const editBio = document.getElementById("editBio");
-const editPhoto = document.getElementById("editPhoto");
-const saveProfileBtn = document.getElementById("saveProfileBtn");
-const backProfileBtn = document.getElementById("backProfileBtn");
-const goEditBtn = document.getElementById("goEditBtn");
+  // DOM Elements
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const avatarBtn = document.getElementById("avatarBtn");
+  const avatarImg = document.getElementById("avatarImg");
+  const drawer = document.getElementById("drawer");
+  const drawerOverlay = document.getElementById("drawerOverlay");
+  const closeDrawer = document.getElementById("closeDrawer");
+  const drawerAvatar = document.getElementById("drawerAvatar");
+  const drawerName = document.getElementById("drawerName");
+  const drawerEmail = document.getElementById("drawerEmail");
+  const logoutDrawer = document.getElementById("logoutDrawer");
+  
+  // Tabs
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  const profileTab = document.getElementById("profileTab");
+  const editTab = document.getElementById("editTab");
+  
+  // Profile Display
+  const profileName = document.getElementById("profileName");
+  const profileEmail = document.getElementById("profileEmail");
+  const profileBio = document.getElementById("profileBio");
+  
+  // Edit Form
+  const editName = document.getElementById("editName");
+  const editBio = document.getElementById("editBio");
+  const editPhoto = document.getElementById("editPhoto");
+  const saveProfileBtn = document.getElementById("saveProfileBtn");
+  const editMsg = document.getElementById("editMsg");
+  
+  // Script Actions
+  const copyBtn = document.getElementById("copyBtn");
+  const downloadBtn = document.getElementById("downloadBtn");
+  const viewBtn = document.getElementById("viewBtn");
+  const codeArea = document.getElementById("codeArea");
+  const statusMsg = document.getElementById("statusMsg");
+  
+  // Theme Toggle
+  const themeToggle = document.getElementById("themeToggle");
 
-// Drawer open/close
-avatarBtn.addEventListener("click", ()=> drawer.classList.toggle("open"));
-closeDrawer.addEventListener("click", ()=> drawer.classList.remove("open"));
+  let currentUser = null;
 
-// Tabs
-tabBtns.forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    tabBtns.forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    if(btn.dataset.tab==="profileTab"){ profileTab.classList.add("active"); editTab.classList.remove("active"); }
-    else { profileTab.classList.remove("active"); editTab.classList.add("active"); }
-  });
-});
-
-// Theme
-themeToggle.addEventListener("change", ()=>{
-  const t = themeToggle.checked ? "light" : "dark";
-  localStorage.setItem("theme", t);
-  if(t==="light") document.body.classList.add("light"); else document.body.classList.remove("light");
-});
-if(localStorage.getItem("theme")==="light") themeToggle.checked=true,document.body.classList.add("light");
-
-// Auth
-loginBtn.onclick = ()=> signInWithPopup(auth, provider).catch(e=>alert("Erro login: "+e.message));
-logoutBtn.onclick = ()=> signOut(auth).catch(console.log);
-document.getElementById("logoutFromDrawer").onclick = ()=> signOut(auth).catch(console.log);
-
-let currentUser = null;
-onAuthStateChanged(auth, async (user)=>{
-  currentUser = user;
-  if(user){
-    loginBtn.style.display="none"; logoutBtn.style.display=""; avatarBtn.style.display="";
-    avatarImg.src=user.photoURL||avatarImg.src;
-    drawerEmail.textContent=user.email||"—";
-    await loadUserProfile(user);
-  } else {
-    loginBtn.style.display=""; logoutBtn.style.display="none"; avatarBtn.style.display="none"; drawer.classList.remove("open");
-    drawerName.textContent="Convidado"; drawerEmail.textContent="—"; drawerPfp.src="https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
+  // Theme Management
+  function loadTheme() {
+    const theme = localStorage.getItem("theme") || "dark";
+    document.body.classList.toggle("light", theme === "light");
+    themeToggle.checked = theme === "light";
   }
-});
 
-// Load profile
-async function loadUserProfile(user){
-  if(!user) return;
-  const ref = doc(db,"users",user.uid);
-  const snap = await getDoc(ref);
-  let data;
-  if(snap.exists()) data = snap.data();
-  else data={name:user.displayName||"",bio:"",photo:user.photoURL||""}, await setDoc(ref,data,{merge:true});
-  drawerName.textContent=data.name||user.displayName||"Usuário";
-  drawerPfp.src=data.photo||user.photoURL||drawerPfp.src;
-  editName.value=data.name||user.displayName||"";
-  editBio.value=data.bio||"";
-}
+  function saveTheme() {
+    const theme = themeToggle.checked ? "light" : "dark";
+    localStorage.setItem("theme", theme);
+    document.body.classList.toggle("light", theme === "light");
+  }
 
-// Edit profile
-goEditBtn.onclick=()=>{ profileTab.classList.remove("active"); editTab.classList.add("active"); tabBtns.forEach(b=>b.classList.remove("active")); tabBtns[1].classList.add("active"); };
-backProfileBtn.onclick=()=>{ profileTab.classList.add("active"); editTab.classList.remove("active"); tabBtns.forEach(b=>b.classList.remove("active")); tabBtns[0].classList.add("active"); };
+  themeToggle.addEventListener("change", saveTheme);
+  loadTheme();
 
-saveProfileBtn.onclick=async ()=>{
-  if(!currentUser){ alert("Faça login"); return; }
-  const newName=editName.value.trim(), newBio=editBio.value.trim(), file=editPhoto.files[0];
-  if(!newName){ alert("Nome obrigatório"); return; }
-  if(file && file.size>500*1024){ alert("Foto muito grande (max 500kb)"); return; }
+  // Drawer Management
+  function openDrawer() {
+    drawer.classList.add("open");
+    drawerOverlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
 
-  let photoData=null;
-  if(file){ photoData=await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); }); }
+  function closeDrawerFunc() {
+    drawer.classList.remove("open");
+    drawerOverlay.classList.remove("open");
+    document.body.style.overflow = "";
+  }
 
-  const qSnap = await getDocs(query(collection(db,"users"),where("name","==",newName)));
-  if(!qSnap.empty && qSnap.docs.some(d=>d.id!==currentUser.uid)){ alert("Nome já existe"); return; }
+  avatarBtn.addEventListener("click", openDrawer);
+  closeDrawer.addEventListener("click", closeDrawerFunc);
+  drawerOverlay.addEventListener("click", closeDrawerFunc);
 
-  const payload={name:newName,bio:newBio}; if(photoData) payload.photo=photoData;
-  await setDoc(doc(db,"users",currentUser.uid),payload,{merge:true});
-  await loadUserProfile(currentUser);
-  editPhoto.value="";
-  alert("Perfil salvo!");
-};
+  // Tab Management
+  tabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const targetTab = btn.dataset.tab;
+      
+      tabBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      
+      document.querySelectorAll(".tab-content").forEach(content => {
+        content.classList.remove("active");
+      });
+      
+      document.getElementById(targetTab).classList.add("active");
+    });
+  });
+
+  // Auth Management
+  loginBtn.addEventListener("click", () => {
+    signInWithPopup(auth, provider).catch(err => {
+      alert("Erro ao fazer login: " + err.message);
+    });
+  });
+
+  logoutBtn.addEventListener("click", () => signOut(auth));
+  logoutDrawer.addEventListener("click", () => {
+    signOut(auth);
+    closeDrawerFunc();
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    
+    if (user) {
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-flex";
+      avatarBtn.classList.add("show");
+      avatarImg.src = user.photoURL || "https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
+      
+      await loadUserProfile(user);
+    } else {
+      loginBtn.style.display = "inline-flex";
+      logoutBtn.style.display = "none";
+      avatarBtn.classList.remove("show");
+      
+      drawerName.textContent = "Convidado";
+      drawerEmail.textContent = "";
+      drawerAvatar.src = "https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
+      profileName.textContent = "—";
+      profileEmail.textContent = "—";
+      profileBio.textContent = "—";
+    }
+  });
+
+  async function loadUserProfile(user) {
+    if (!user) return;
+    
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    let userData;
+    
+    if (userSnap.exists()) {
+      userData = userSnap.data();
+    } else {
+      userData = {
+        name: user.displayName || "",
+        bio: "",
+        photo: user.photoURL || "",
+        created: new Date().toISOString()
+      };
+      await setDoc(userRef, userData);
+    }
+    
+    // Update UI
+    const displayName = userData.name || user.displayName || "Usuário";
+    const displayPhoto = userData.photo || user.photoURL || "https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
+    
+    drawerName.textContent = displayName;
+    drawerEmail.textContent = user.email || "";
+    drawerAvatar.src = displayPhoto;
+    avatarImg.src = displayPhoto;
+    
+    profileName.textContent = displayName;
+    profileEmail.textContent = user.email || "—";
+    profileBio.textContent = userData.bio || "Sem biografia";
+    
+    editName.value = userData.name || user.displayName || "";
+    editBio.value = userData.bio || "";
+  }
+
+  // Profile Edit
+  saveProfileBtn.addEventListener("click", async () => {
+    if (!currentUser) {
+      editMsg.textContent = "❌ Você precisa estar logado!";
+      return;
+    }
+    
+    const newName = editName.value.trim();
+    const newBio = editBio.value.trim();
+    const file = editPhoto.files[0];
+    
+    if (!newName) {
+      editMsg.textContent = "❌ Nome é obrigatório!";
+      return;
+    }
+    
+    if (file && file.size > 500 * 1024) {
+      editMsg.textContent = "❌ Foto deve ter menos de 500kb!";
+      return;
+    }
+    
+    editMsg.textContent = "💾 Salvando...";
+    saveProfileBtn.disabled = true;
+    
+    try {
+      let photoData = null;
+      
+      if (file) {
+        photoData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+      
+      const userRef = doc(db, "users", currentUser.uid);
+      const updateData = {
+        name: newName,
+        bio: newBio
+      };
+      
+      if (photoData) {
+        updateData.photo = photoData;
+      }
+      
+      await setDoc(userRef, updateData, { merge: true });
+      await loadUserProfile(currentUser);
+      
+      editMsg.textContent = "✓ Perfil salvo com sucesso!";
+      editPhoto.value = "";
+      
+      setTimeout(() => {
+        editMsg.textContent = "";
+      }, 3000);
+    } catch (error) {
+      editMsg.textContent = "❌ Erro ao salvar: " + error.message;
+    } finally {
+      saveProfileBtn.disabled = false;
+    }
+  });
+
+  // Script Actions
+  copyBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(codeArea.textContent).then(() => {
+      statusMsg.classList.add("show");
+      setTimeout(() => statusMsg.classList.remove("show"), 2000);
+    });
+  });
+
+  downloadBtn.addEventListener("click", () => {
+    const blob = new Blob([codeArea.textContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sui-hub-demonfall.lua";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  viewBtn.addEventListener("click", () => {
+    const newWindow = window.open();
+    newWindow.document.write(`
+      <html>
+        <head>
+          <title>Sui Hub - Código</title>
+          <style>
+            body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #e0e0e0; }
+            pre { white-space: pre-wrap; word-break: break-all; }
+          </style>
+        </head>
+        <body>
+          <h2>Sui Hub — Demonfall</h2>
+          <pre>${codeArea.textContent}</pre>
+        </body>
+      </html>
+    `);
+    newWindow.document.close();
+  });
 </script>
 </body>
 </html>
