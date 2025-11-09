@@ -922,4 +922,177 @@
   }
 
   avatarBtn.addEventListener("click", openDrawer);
-  closeDrawer.addEventListener("click", closeDrawerFunc
+  closeDrawer.addEventListener("click", closeDrawerFunc);
+  drawerOverlay.addEventListener("click", closeDrawerFunc);
+
+  // Tab Management
+  tabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const targetTab = btn.dataset.tab;
+      
+      tabBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      
+      document.querySelectorAll(".tab-content").forEach(content => {
+        content.classList.remove("active");
+      });
+      
+      document.getElementById(targetTab).classList.add("active");
+    });
+  });
+
+  // Auth Management
+  loginBtn.addEventListener("click", () => {
+    signInWithPopup(auth, provider).catch(err => {
+      alert("Erro ao fazer login: " + err.message);
+    });
+  });
+
+  logoutDrawer.addEventListener("click", () => {
+    signOut(auth);
+    closeDrawerFunc();
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    
+    if (user) {
+      loginBtn.style.display = "none";
+      avatarBtn.classList.add("show");
+      avatarImg.src = user.photoURL || "https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
+      
+      await loadUserProfile(user);
+    } else {
+      loginBtn.style.display = "inline-flex";
+      avatarBtn.classList.remove("show");
+      
+      drawerName.textContent = "Convidado";
+      drawerEmail.textContent = "";
+      drawerAvatar.src = "https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
+      profileName.textContent = "—";
+      profileEmail.textContent = "—";
+      profileBio.textContent = "—";
+    }
+  });
+
+  async function loadUserProfile(user) {
+    if (!user) return;
+    
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    let userData;
+    
+    if (userSnap.exists()) {
+      userData = userSnap.data();
+    } else {
+      userData = {
+        name: user.displayName || "",
+        bio: "",
+        photo: user.photoURL || "",
+        created: new Date().toISOString()
+      };
+      await setDoc(userRef, userData);
+    }
+    
+    // Update UI
+    const displayName = userData.name || user.displayName || "Usuário";
+    const displayPhoto = userData.photo || user.photoURL || "https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
+    
+    drawerName.textContent = displayName;
+    drawerEmail.textContent = user.email || "";
+    drawerAvatar.src = displayPhoto;
+    avatarImg.src = displayPhoto;
+    
+    profileName.textContent = displayName;
+    profileEmail.textContent = user.email || "—";
+    profileBio.textContent = userData.bio || "Sem biografia";
+    
+    editName.value = userData.name || user.displayName || "";
+    editBio.value = userData.bio || "";
+  }
+
+  // Profile Edit
+  saveProfileBtn.addEventListener("click", async () => {
+    if (!currentUser) {
+      editMsg.textContent = "❌ Você precisa estar logado!";
+      return;
+    }
+    
+    const newName = editName.value.trim();
+    const newBio = editBio.value.trim();
+    const file = editPhoto.files[0];
+    
+    if (!newName) {
+      editMsg.textContent = "❌ Nome é obrigatório!";
+      return;
+    }
+    
+    if (file && file.size > 500 * 1024) {
+      editMsg.textContent = "❌ Foto deve ter menos de 500kb!";
+      return;
+    }
+    
+    editMsg.textContent = "💾 Salvando...";
+    saveProfileBtn.disabled = true;
+    
+    try {
+      let photoData = null;
+      
+      if (file) {
+        photoData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+      
+      const userRef = doc(db, "users", currentUser.uid);
+      const updateData = {
+        name: newName,
+        bio: newBio
+      };
+      
+      if (photoData) {
+        updateData.photo = photoData;
+      }
+      
+      await setDoc(userRef, updateData, { merge: true });
+      await loadUserProfile(currentUser);
+      
+      editMsg.textContent = "✓ Perfil salvo com sucesso!";
+      editPhoto.value = "";
+      
+      setTimeout(() => {
+        editMsg.textContent = "";
+      }, 3000);
+    } catch (error) {
+      editMsg.textContent = "❌ Erro ao salvar: " + error.message;
+    } finally {
+      saveProfileBtn.disabled = false;
+    }
+  });
+
+  // Script Actions
+  copyBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(codeArea.textContent).then(() => {
+      statusMsg.classList.add("show");
+      setTimeout(() => statusMsg.classList.remove("show"), 2000);
+    });
+  });
+
+  downloadBtn.addEventListener("click", () => {
+    const blob = new Blob([codeArea.textContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sui-hub-demonfall.lua";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+</script>
+</body>
+</html>
