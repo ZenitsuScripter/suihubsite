@@ -23,6 +23,14 @@ const DEFAULT_AVATAR = "https://www.gstatic.com/images/branding/product/1x/avata
 
 let currentUser = null;
 
+// ===== TOAST HELPER =====
+const showToast = (message) => {
+  const toast = $("statusMsg");
+  toast.textContent = message;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 3000);
+};
+
 // ===== ELEMENTOS DOM =====
 const $ = id => document.getElementById(id);
 const els = {
@@ -57,7 +65,8 @@ const els = {
   themeToggle: $("themeToggle"),
   viewCount: $("viewCount"),
   copyCount: $("copyCount"),
-  downloadCount: $("downloadCount")
+  downloadCount: $("downloadCount"),
+  mobileAvatarImg: $("mobileAvatarImg")
 };
 
 // ===== UI FUNCTIONS =====
@@ -101,13 +110,32 @@ const saveTheme = () => {
   document.body.classList.toggle("light", t === "light");
 };
 
-// ===== TABS =====
-document.querySelectorAll(".tab-btn").forEach(b => {
-  b.addEventListener("click", () => {
-    const t = b.dataset.tab;
-    document.querySelectorAll(".tab-btn").forEach(x => x.classList.remove("active"));
-    b.classList.add("active");
+// ===== NAVIGATION TABS =====
+document.querySelectorAll(".nav-btn, .mobile-nav-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const tabId = btn.dataset.tab;
+    
+    // Update nav buttons
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".mobile-nav-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(`[data-tab="${tabId}"]`).forEach(b => b.classList.add("active"));
+    
+    // Update tab content
     document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    $(tabId).classList.add("active");
+    
+    // Close mobile menu if open
+    closeMobile();
+  });
+});
+
+// ===== DRAWER TABS =====
+document.querySelectorAll("[data-drawer-tab]").forEach(b => {
+  b.addEventListener("click", () => {
+    const t = b.dataset.drawerTab;
+    document.querySelectorAll("[data-drawer-tab]").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    document.querySelectorAll(".drawer-tab-content").forEach(c => c.classList.remove("active"));
     $(t).classList.add("active");
   });
 });
@@ -340,7 +368,7 @@ els.copyBtn.addEventListener("click", async () => {
     const now = Date.now();
     if (data.copy && now - data.copy < COOLDOWN) {
       const remaining = Math.ceil((COOLDOWN - (now - data.copy)) / 1000);
-      alert(`⏳ Aguarde ${remaining} segundos para copiar novamente`);
+      showToast(`⏳ Aguarde ${remaining} segundos para copiar novamente`);
       return;
     }
   }
@@ -355,7 +383,7 @@ els.copyBtn.addEventListener("click", async () => {
         const now = Date.now();
         if (now - t < COOLDOWN) {
           const remaining = Math.ceil((COOLDOWN - (now - t)) / 1000);
-          alert(`⏳ Aguarde ${remaining} segundos para copiar novamente`);
+          showToast(`⏳ Aguarde ${remaining} segundos para copiar novamente`);
           return;
         }
       }
@@ -363,8 +391,17 @@ els.copyBtn.addEventListener("click", async () => {
   }
 
   navigator.clipboard.writeText(els.codeArea.textContent).then(async () => {
-    els.statusMsg.classList.add("show");
-    setTimeout(() => els.statusMsg.classList.remove("show"), 2000);
+    // Visual feedback
+    els.copyBtn.classList.add("copied");
+    const originalText = els.copyBtn.querySelector(".copy-text").textContent;
+    els.copyBtn.querySelector(".copy-text").textContent = "Copiado!";
+    showToast("✓ Código copiado com sucesso!");
+    
+    setTimeout(() => {
+      els.copyBtn.classList.remove("copied");
+      els.copyBtn.querySelector(".copy-text").textContent = originalText;
+    }, 2000);
+    
     await incStat("copies");
     const now = Date.now();
     const cooldowns = localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : {};
@@ -375,10 +412,8 @@ els.copyBtn.addEventListener("click", async () => {
       await setDoc(cdDoc, { copyTimestamp: serverTimestamp() }, { merge: true });
     }
     els.copyBtn.disabled = true;
-    els.copyBtn.textContent = "⏳ Aguarde...";
     setTimeout(() => {
       els.copyBtn.disabled = false;
-      els.copyBtn.textContent = "📋 Copiar";
     }, COOLDOWN);
   });
 });
@@ -386,7 +421,7 @@ els.copyBtn.addEventListener("click", async () => {
 // ===== DOWNLOAD BUTTON =====
 els.downloadBtn.addEventListener("click", async () => {
   if (!currentUser) {
-    alert("❌ Faça login para baixar!");
+    showToast("❌ Faça login para baixar!");
     return;
   }
   if (els.downloadBtn.disabled) return;
@@ -400,7 +435,7 @@ els.downloadBtn.addEventListener("click", async () => {
       const now = Date.now();
       if (now - t < COOLDOWN) {
         const remaining = Math.ceil((COOLDOWN - (now - t)) / 1000);
-        alert(`⏳ Aguarde ${remaining} segundos para baixar novamente`);
+        showToast(`⏳ Aguarde ${remaining} segundos para baixar novamente`);
         return;
       }
     }
@@ -420,11 +455,10 @@ els.downloadBtn.addEventListener("click", async () => {
   const cooldowns = localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : {};
   cooldowns.download = Date.now();
   localStorage.setItem(key, JSON.stringify(cooldowns));
+  showToast("✓ Download iniciado!");
   els.downloadBtn.disabled = true;
-  els.downloadBtn.textContent = "⏳ Aguarde...";
   setTimeout(() => {
     els.downloadBtn.disabled = false;
-    els.downloadBtn.textContent = "💾 Baixar";
   }, COOLDOWN);
 });
 
