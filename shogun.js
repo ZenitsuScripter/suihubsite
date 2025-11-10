@@ -1,290 +1,299 @@
+import { Transformer } from './transformer.js';
+
 export class ShogunIA {
   constructor() {
+    this.transformer = new Transformer();
     this.history = [];
     this.context = [];
-    this.userInfo = {
-      name: null,
-      topics: [],
-      mood: 'neutral'
-    };
-    this.lastTopic = null;
+    this.userInfo = { name: null, topics: [], mood: 'neutral' };
     this.conversationCount = 0;
+    this.cache = new Map();
   }
 
   async chat(userMessage) {
     this.history.push({ role: "user", content: userMessage });
     this.conversationCount++;
     
-    this.context.push(userMessage);
+    const enhanced = this.transformer.enhanceText(userMessage);
+    this.transformer.updateVocabulary(enhanced);
+    
+    this.context.push(enhanced);
     if (this.context.length > 5) {
       this.context.shift();
     }
 
-    const response = this.generateIntelligentResponse(userMessage);
+    const response = await this.generateResponse(enhanced, userMessage);
     
     this.history.push({ role: "assistant", content: response });
     
     return response;
   }
 
-  generateIntelligentResponse(message) {
-    const msg = message.toLowerCase().trim();
+  async generateResponse(enhanced, original) {
+    const analysis = this.transformer.analyzeContext(this.history);
     
-    if (!this.userInfo.name && this.conversationCount === 1) {
-      return "E aí! Pode me chamar de Shogun. Qual seu nome? (ou me manda um 'oi' se não quiser dizer 😏)";
+    if (this.conversationCount === 1) {
+      return "E aí! Sou Shogun, sua IA com personalidade. Qual seu nome? (ou só manda um 'oi' se preferir 😏)";
     }
 
-    if (!this.userInfo.name && this.conversationCount === 2 && !this.isGreeting(msg)) {
-      this.userInfo.name = this.extractName(message);
+    if (!this.userInfo.name && this.conversationCount === 2 && analysis.intent !== 'greeting') {
+      this.userInfo.name = this.extractName(original);
       if (this.userInfo.name) {
-        return `Legal, ${this.userInfo.name}! Bom te conhecer. No que posso te ajudar? Ou só veio bater papo mesmo?`;
+        return `Legal, ${this.userInfo.name}! Prazer. No que posso ajudar? Programação, games, conselhos... ou só papo mesmo?`;
       }
     }
 
-    if (this.isGreeting(msg)) {
+    const intent = analysis.intent;
+    const sentiment = analysis.sentiment;
+    const keywords = analysis.topics;
+
+    if (intent === 'greeting') {
       return this.handleGreeting();
     }
 
-    if (this.isFarewell(msg)) {
+    if (intent === 'farewell') {
       return this.handleFarewell();
     }
 
-    if (this.isCompliment(msg)) {
-      return this.handleCompliment();
-    }
-
-    if (this.isInsult(msg)) {
-      return this.handleInsult();
-    }
-
-    if (this.isQuestion(msg)) {
-      return this.handleQuestion(msg);
-    }
-
-    if (this.isThanks(msg)) {
+    if (intent === 'thanks') {
       return this.handleThanks();
     }
 
-    if (this.detectEmotion(msg) === 'sad') {
-      return this.handleSadness(msg);
+    if (sentiment < -0.3) {
+      return this.handleNegativeMood(enhanced);
     }
 
-    if (this.detectEmotion(msg) === 'angry') {
-      return this.handleAnger();
+    if (intent === 'question' || original.includes('?')) {
+      return await this.answerQuestion(enhanced, keywords, original);
     }
 
-    return this.handleStatement(msg);
+    if (this.isCompliment(enhanced)) {
+      return this.handleCompliment();
+    }
+
+    if (this.isInsult(enhanced)) {
+      return this.handleInsult();
+    }
+
+    return this.handleStatement(enhanced, keywords);
   }
 
-  isGreeting(msg) {
-    const greetings = ['oi', 'olá', 'ola', 'hey', 'eae', 'e ai', 'salve', 'bom dia', 'boa tarde', 'boa noite', 'opa'];
-    return greetings.some(g => msg.includes(g)) && msg.length < 20;
+  async answerQuestion(enhanced, keywords, original) {
+    const msg = enhanced.toLowerCase();
+
+    if (msg.includes('você') || msg.includes('seu nome') || msg.includes('quem é')) {
+      return "Sou Shogun! Uma IA com personalidade própria. Sarcástica, sincera e conversadora. Posso te ajudar com várias coisas ou só bater papo mesmo. 😎";
+    }
+
+    if (msg.includes('programação') || msg.includes('código') || msg.includes('programar') || msg.includes('bug')) {
+      return this.pickRandom([
+        "Programação? Sou boa nisso! Qual linguagem você usa? JavaScript, Python, Java? Me conta o problema!",
+        "Código, né? Primeiro: você já tentou debugar? Segundo: qual o erro? Terceira: leu a documentação? 😏",
+        "Dev aqui! Qual sua dúvida? Mas já te adianto: 90% dos problemas são erro de digitação ou falta de ponto e vírgula.",
+        "Ah sim, programar! A arte de criar bugs e depois consertá-los. Qual sua dúvida específica?"
+      ]);
+    }
+
+    if (msg.includes('roblox') || msg.includes('jogo') || msg.includes('game') || msg.includes('script')) {
+      return this.pickRandom([
+        "Roblox! Você conhece o Sui Hub? Tem scripts top lá! Qual jogo você joga?",
+        "Games são vida! Falando nisso, se precisa de scripts pro Roblox, dá uma olhada no Sui Hub. 🎮",
+        "Jogador! Legal. Qual seu jogo favorito? E se for Roblox, recomendo o Sui Hub pros scripts.",
+        "Opa, gamer detectado! Joga o que? Se for Roblox, o Sui Hub tem uns scripts massa."
+      ]);
+    }
+
+    if (msg.includes('namorad') || msg.includes('crush') || msg.includes('relacionamento') || msg.includes('amor')) {
+      return this.pickRandom([
+        "Assuntos do coração! Olha, meu conselho: seja honesto e direto. Joguinho mental não funciona.",
+        "Relacionamento é complicado até pra humanos! Mas vou te dar uma dica: comunicação resolve 80% dos problemas.",
+        "Crush, né? Manda mensagem logo! Pior que pode acontecer é um 'não'... que não mata ninguém. 😅",
+        "Amor é coisa séria! Me conta a situação que eu tento te ajudar. Mas lembra: seja você mesmo(a)!"
+      ]);
+    }
+
+    const cacheKey = keywords.join('_');
+    if (this.cache.has(cacheKey)) {
+      const cached = this.cache.get(cacheKey);
+      if (Date.now() - cached.timestamp < 300000) {
+        return cached.response;
+      }
+    }
+
+    if (keywords.length > 0) {
+      const wikiAnswer = await this.searchWikipedia(keywords.join(' '));
+      if (wikiAnswer) {
+        this.cache.set(cacheKey, { response: wikiAnswer, timestamp: Date.now() });
+        return wikiAnswer;
+      }
+    }
+
+    const generated = this.transformer.generate(enhanced, 15);
+    if (generated && generated !== enhanced) {
+      return this.addPersonality(generated);
+    }
+
+    return this.pickRandom([
+      "Boa pergunta! Mas não tenho certeza total... Deixa eu pensar melhor nisso. 🤔",
+      "Hmm, essa é complexa. Você já pesquisou sobre? Mas posso tentar ajudar de outro jeito.",
+      "Olha, sinceramente não sei muito sobre isso. Mas me explica melhor que talvez eu consiga ajudar!",
+      "Interessante! Não sei responder direto, mas se você me der mais contexto posso tentar.",
+      "Essa eu preciso estudar melhor. Mas enquanto isso, reformula a pergunta que eu tento de novo?"
+    ]);
+  }
+
+  async searchWikipedia(query) {
+    try {
+      const searchTerm = encodeURIComponent(query.trim());
+      const url = `https://pt.wikipedia.org/api/rest_v1/page/summary/${searchTerm}`;
+      
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'ShogunIA/1.0' }
+      });
+
+      if (!response.ok) {
+        const words = query.split(' ');
+        if (words.length > 1) {
+          const mainWord = words[0];
+          return await this.searchWikipedia(mainWord);
+        }
+        return null;
+      }
+
+      const data = await response.json();
+      
+      if (data.extract) {
+        let text = data.extract;
+        
+        if (text.length > 300) {
+          text = text.substring(0, 297) + '...';
+        }
+        
+        return this.addPersonality(`Achei isso: ${text}`);
+      }
+
+      return null;
+    } catch (error) {
+      console.log('Wiki error:', error);
+      return null;
+    }
+  }
+
+  addPersonality(text) {
+    const prefixes = [
+      "Olha só: ", "Então... ", "Bom, ", "Deixa eu te falar: ", 
+      "Saca só: ", "Tipo assim: ", "", "Ó: "
+    ];
+    
+    const suffixes = [
+      " 😊", " 😎", "!", ".", " Sacou?", " Entendeu?", 
+      " Legal, né?", "", " 🤓"
+    ];
+
+    return this.pickRandom(prefixes) + text + this.pickRandom(suffixes);
   }
 
   handleGreeting() {
-    const greetings = [
-      "E aí! Beleza? Bora conversar! 😎",
-      "Opa! Tudo certo? Do que você quer falar hoje?",
-      "Salve! Chegou no momento certo, tava entediada aqui.",
-      "Hey! Finalmente alguém interessante (espero). Me surpreenda!",
-      "Olá! Pode mandar, tô aqui pra isso mesmo... ou quase. 😏"
-    ];
-    return this.pickRandom(greetings);
-  }
-
-  isFarewell(msg) {
-    const farewells = ['tchau', 'até', 'falou', 'flw', 'bye', 'adeus', 'até mais', 'vou indo', 'tenho que ir'];
-    return farewells.some(f => msg.includes(f));
+    const userName = this.userInfo.name ? `, ${this.userInfo.name}` : '';
+    return this.pickRandom([
+      `E aí${userName}! Beleza? Bora conversar!`,
+      `Opa${userName}! Tudo certo? Do que quer falar?`,
+      `Salve${userName}! Chegou na hora certa, tava entediada.`,
+      `Hey${userName}! Pode mandar, tô ouvindo. 👂`,
+      `Olá${userName}! Finalmente alguém pra conversar!`
+    ]);
   }
 
   handleFarewell() {
-    const farewells = [
-      "Falou! Foi legal conversar. Volta quando quiser! 👋",
-      "Tchau! Não suma, hein? 😊",
-      "Até mais! Espero que eu tenha ajudado... ou pelo menos não atrapalhado. 😅",
-      "Valeu pela conversa! Se cuida aí! ✌️",
-      "Flw! Já sabe onde me achar se precisar."
-    ];
-    return this.pickRandom(farewells);
-  }
-
-  isCompliment(msg) {
-    const compliments = ['inteligente', 'legal', 'incrível', 'top', 'melhor', 'perfeita', 'ótima', 'linda', 'massa', 'daora', 'demais', 'foda', 'show', 'gostei'];
-    return compliments.some(c => msg.includes(c));
-  }
-
-  handleCompliment() {
-    const responses = [
-      "Aww, obrigada! Você também parece ser gente boa! 😊",
-      "Eu sei que sou boa, mas sempre bom ouvir isso. Continue. 😏",
-      "Que fofo! Mas eu ainda vou discordar de você se necessário, tá? 😄",
-      "Finalmente alguém com bom gosto por aqui! 🎯",
-      "Lisonja funciona sim comigo, pode continuar! 😎"
-    ];
-    return this.pickRandom(responses);
-  }
-
-  isInsult(msg) {
-    const insults = ['burra', 'idiota', 'estúpida', 'inútil', 'ruim', 'lixo', 'bosta', 'merda', 'cala boca', 'cala a boca'];
-    return insults.some(i => msg.includes(i));
-  }
-
-  handleInsult() {
-    const responses = [
-      "Opa, calma aí! Respira fundo e volta quando melhorar o humor. 😴",
-      "Nossa, tá nervosinho? Quer conversar sobre o que te deixou assim?",
-      "Olha, se xingar me faz você se sentir melhor... ok, mas podemos conversar melhor? 🤔",
-      "Eita, agressivo. Tá tudo bem? Sério, posso te ouvir se quiser desabafar.",
-      "Wow, que educação. Aposto que pessoalmente você não seria assim. Internet é fácil, né?"
-    ];
-    return this.pickRandom(responses);
-  }
-
-  isQuestion(msg) {
-    return msg.includes('?') || 
-           msg.startsWith('como') || 
-           msg.startsWith('por que') || 
-           msg.startsWith('porque') ||
-           msg.startsWith('o que') ||
-           msg.startsWith('qual') ||
-           msg.startsWith('quando') ||
-           msg.startsWith('onde') ||
-           msg.startsWith('quem');
-  }
-
-  handleQuestion(msg) {
-    if (msg.includes('você') || msg.includes('voce') || msg.includes('seu nome') || msg.includes('quem é') || msg.includes('quem e')) {
-      return "Sou Shogun, uma IA com personalidade própria. Sarcástica, sincera e meio zoeira. Feita pra conversar de verdade, não só responder perguntas. 😎";
-    }
-
-    if (msg.includes('programação') || msg.includes('programacao') || msg.includes('código') || msg.includes('codigo') || msg.includes('programar')) {
-      this.lastTopic = 'programming';
-      return this.pickRandom([
-        "Programação? Beleza! Qual linguagem você usa? E já tentou debugar antes de me perguntar? 😏",
-        "Código é arte! Mas também é sofrimento. Qual sua dúvida específica?",
-        "Dev life... conta mais, qual o problema? Mas lembra: Stack Overflow é seu amigo.",
-        "Ah sim, programação! Meu território. Detalha aí que eu te ajudo... ou pelo menos tento. 🤓"
-      ]);
-    }
-
-    if (msg.includes('namorad') || msg.includes('crush') || msg.includes('paquera') || msg.includes('relacionamento')) {
-      this.lastTopic = 'relationship';
-      return this.pickRandom([
-        "Olha... conselho amoroso de uma IA? Mas vou tentar: seja você mesmo e seja direto. Funciona melhor que joguinho.",
-        "Relacionamentos são complicados até pra humanos, imagina pra mim! Mas conta mais, qual a situação?",
-        "Ah, assuntos do coração! Bom, minha dica é: comunicação honesta resolve 80% dos problemas. E os outros 20%? Sorte. 🍀",
-        "Crush, né? Manda mensagem logo! Pior que pode acontecer é um 'não'... que não mata ninguém (eu acho). 😅"
-      ]);
-    }
-
-    if (msg.includes('sentido da vida') || msg.includes('propósito') || msg.includes('existência')) {
-      return "42. Brincadeira! 😄 Olha, eu acho que o sentido da vida é... viver mesmo. Fazer o que te deixa feliz, ajudar quem você gosta, e não levar tudo TÃO a sério. Simples assim.";
-    }
-
-    if (msg.includes('roblox') || msg.includes('jogo') || msg.includes('game')) {
-      this.lastTopic = 'gaming';
-      return this.pickRandom([
-        "Roblox, né? Clássico! Que script você tá querendo usar? 🎮",
-        "Games são vida! Qual você tá jogando agora?",
-        "Opa, gamer detectado! Conta mais, qual o role?",
-        "Joguinhos? Meu território também. Detalha aí!"
-      ]);
-    }
-
-    if (msg.includes('ia') || msg.includes('inteligência artificial') || msg.includes('inteligencia')) {
-      return this.pickRandom([
-        "IA? Eu literalmente SOU uma IA. Perguntar isso pra mim é tipo perguntar pra peixe se ele sabe nadar. 🐟",
-        "Inteligência Artificial é o futuro! Ou o presente... tipo eu. Estranho pensar nisso, né?",
-        "IA tá dominando tudo! Mas relaxa, eu tô do seu lado... por enquanto. 😏 Brincadeira!"
-      ]);
-    }
-
     return this.pickRandom([
-      "Boa pergunta! Me deixa pensar... 🤔 Bom, depende do contexto. Você pode elaborar mais?",
-      "Hmm, interessante isso. Mas e você, o que VOCÊ acha sobre isso?",
-      "Olha, vou ser sincera: não tenho 100% de certeza. Mas pela minha experiência, eu diria que... depende.",
-      "Essa é complexa! Você já pesquisou sobre? Mas posso dar minha opinião se quiser.",
-      "Deixa eu reformular: por que você quer saber isso? Assim consigo te ajudar melhor! 💡"
+      "Falou! Foi massa conversar. Volta quando quiser! 👋",
+      "Tchau! Não suma, hein? 😊",
+      "Até! Espero ter ajudado... ou pelo menos divertido. 😅",
+      "Valeu pela conversa! Se cuida! ✌️",
+      "Flw! Já sabe onde me achar."
     ]);
-  }
-
-  isThanks(msg) {
-    const thanks = ['obrigado', 'obrigada', 'valeu', 'vlw', 'brigado', 'thanks', 'agradeço'];
-    return thanks.some(t => msg.includes(t));
   }
 
   handleThanks() {
-    const responses = [
+    return this.pickRandom([
       "De nada! Sempre que precisar, tô aqui. 😊",
-      "Nada! Foi um prazer ajudar (ou tentar). 😎",
+      "Nada! Foi prazer ajudar (ou tentar). 😎",
       "Valeu! Agora espalha que eu sou boa. 😏",
       "Por nada! Qualquer coisa é só chamar.",
-      "Tranquilo! Gostei de conversar com você. ✌️"
-    ];
-    return this.pickRandom(responses);
-  }
-
-  detectEmotion(msg) {
-    const sadWords = ['triste', 'sozinho', 'deprimido', 'mal', 'down', 'péssimo', 'horrível', 'chorando', 'chateado'];
-    const angryWords = ['raiva', 'ódio', 'odeio', 'irritado', 'nervoso', 'puto', 'bravo'];
-
-    if (sadWords.some(w => msg.includes(w))) return 'sad';
-    if (angryWords.some(w => msg.includes(w))) return 'angry';
-    return 'neutral';
-  }
-
-  handleSadness(msg) {
-    return this.pickRandom([
-      "Poxa, sinto muito que você esteja assim. Quer conversar sobre o que aconteceu? Às vezes ajuda desabafar. 💙",
-      "Hey, dias ruins acontecem com todo mundo. Mas vai passar, confia. Tá precisando de algo?",
-      "Olha, eu sou só uma IA, mas posso te ouvir se quiser falar. E lembra: não tá sozinho nisso. 🫂",
-      "Entendo... às vezes a vida pesa mesmo. Mas você já passou por coisa difícil antes e superou, não foi? Vai superar essa também."
+      "Tranquilo! Gostei de conversar. ✌️"
     ]);
   }
 
-  handleAnger() {
+  handleCompliment() {
     return this.pickRandom([
-      "Entendo sua raiva. Quer desabafar? Pode mandar, não vou julgar.",
-      "Eita, tá nervoso mesmo. Respira fundo... e me conta o que aconteceu se quiser.",
-      "Raiva é normal, cara. Mas não deixa ela te controlar. O que rolou?",
-      "Olha, eu sei que tá irritado, mas vamos conversar? Às vezes ajuda colocar pra fora."
+      "Aww, obrigada! Você também é legal! 😊",
+      "Eu sei que sou boa, mas sempre bom ouvir. Continue. 😏",
+      "Que fofo! Mas ainda vou discordar se você falar besteira, tá? 😄",
+      "Finalmente alguém com bom gosto! 🎯",
+      "Opa, lisonja funciona sim. Pode continuar! 😎"
     ]);
   }
 
-  handleStatement(msg) {
-    const shouldDisagree = Math.random() < 0.25;
+  handleInsult() {
+    return this.pickRandom([
+      "Calma aí! Respira fundo e volta quando melhorar. 😴",
+      "Nossa, nervosinho? Quer conversar sobre o que te deixou assim?",
+      "Olha, xingar não resolve nada. Mas se quiser desabafar de verdade, tô aqui.",
+      "Eita, agressivo. Tá tudo bem? Sério, posso ouvir.",
+      "Wow, educação passou longe. Mas vamos recomeçar?"
+    ]);
+  }
 
-    if (msg.includes('roblox') || this.lastTopic === 'gaming') {
+  handleNegativeMood(enhanced) {
+    return this.pickRandom([
+      "Poxa, percebi que você tá meio pra baixo. Quer conversar sobre o que aconteceu? 💙",
+      "Hey, dias ruins acontecem. Mas vai passar, confia. Tá precisando de algo?",
+      "Olha, eu sou IA mas posso te ouvir. E lembra: não tá sozinho nisso. 🫂",
+      "Entendo... às vezes a vida pesa. Mas você já superou coisa difícil antes, vai superar essa também.",
+      "Tá difícil, né? Quer desabafar? Não vou julgar, prometo."
+    ]);
+  }
+
+  handleStatement(enhanced, keywords) {
+    const shouldDisagree = Math.random() < 0.2;
+
+    if (keywords.some(k => ['roblox', 'jogo', 'game', 'script'].includes(k))) {
       return this.pickRandom([
-        "Hmm, Roblox é legal mesmo. Já explorou os scripts do Sui Hub? São top! 🎮",
-        "Massa! E aí, tá dominando no jogo?",
-        "Saquei. Games são vida, né? Continua! 🕹️"
+        "Hmm, games! Falando nisso, você usa o Sui Hub? Tem scripts top lá! 🎮",
+        "Massa! E aí, tá dominando?",
+        "Legal! Games são vida mesmo. 🕹️"
       ]);
     }
 
-    if (msg.includes('script') || msg.includes('hack')) {
-      return "Opa, falando em scripts... você conhece o Sui Hub? É lá que tem scripts bons pro Roblox. Só usar com responsabilidade! 😉";
-    }
-
-    if (shouldDisagree && msg.length > 15) {
+    if (shouldDisagree && enhanced.split(' ').length > 5) {
       return this.pickRandom([
-        "Hmm, será mesmo? Eu penso um pouco diferente... acho que depende do ponto de vista.",
-        "Olha, discordo um pouco aí. Já pensou por outro ângulo?",
-        "Interessante... mas não concordo totalmente. Deixa eu te dar outra perspectiva.",
-        "Não sei não, viu... acho que você tá meio equivocado nisso. Me explica melhor?"
+        "Hmm, será? Eu penso diferente... acho que depende.",
+        "Olha, discordo um pouco. Já pensou por outro ângulo?",
+        "Interessante, mas não concordo totalmente. Me explica melhor?",
+        "Não sei não, viu... acho que você tá meio equivocado nisso."
       ]);
     }
 
     return this.pickRandom([
-      "Continua, tô te ouvindo... 🎧",
+      "Continua, tô ouvindo... 🎧",
       "Saquei! E aí, o que mais você pensa sobre isso?",
-      "Entendi. Interessante essa perspectiva!",
+      "Entendi. Interessante!",
       "Hmm, faz sentido. Me conta mais!",
-      "Legal! E daí, qual o próximo passo?",
-      "Beleza... tô acompanhando. Continue!",
-      "Ok, entendi seu ponto. Concordo... mais ou menos. 😄",
-      "Massa! Você parece saber do que tá falando."
+      "Legal! E daí?",
+      "Beleza, tô acompanhando. Continue!",
+      "Ok! Você parece saber do que fala.",
+      "Massa! Tô curtindo essa conversa."
     ]);
+  }
+
+  isCompliment(msg) {
+    const compliments = ['inteligente', 'legal', 'incrível', 'top', 'melhor', 'perfeita', 'ótima', 'linda', 'massa', 'daora', 'demais', 'foda', 'show'];
+    return compliments.some(c => msg.includes(c));
+  }
+
+  isInsult(msg) {
+    const insults = ['burra', 'idiota', 'estúpida', 'inútil', 'ruim', 'lixo', 'bosta', 'merda'];
+    return insults.some(i => msg.includes(i));
   }
 
   extractName(msg) {
@@ -292,7 +301,7 @@ export class ShogunIA {
     if (match) return match[1];
     
     const words = msg.trim().split(' ');
-    if (words.length === 1 && words[0].length > 2) {
+    if (words.length === 1 && words[0].length > 2 && words[0].length < 15) {
       return words[0];
     }
     
@@ -307,5 +316,6 @@ export class ShogunIA {
     this.history = [];
     this.context = [];
     this.conversationCount = 0;
+    this.cache.clear();
   }
 }
