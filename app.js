@@ -1,7 +1,7 @@
 // ===== FIREBASE IMPORTS =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, onSnapshot, serverTimestamp, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 // ===== FIREBASE CONFIG =====
 const app = initializeApp({
@@ -20,15 +20,16 @@ const provider = new GoogleAuthProvider();
 const SCRIPT_ID = "demonfall-sui-hub";
 const COOLDOWN = 5 * 60 * 1000;
 const DEFAULT_AVATAR = "https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
+const OWNER_EMAIL = "mgplayer215@gmail.com";
 
 let currentUser = null;
 
-// ===== DOM ELEMENTS =====
+// ===== DOM HELPERS =====
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => document.querySelector(sel);
 const $$$ = (sel) => document.querySelectorAll(sel);
 
-// ===== TOAST HELPER =====
+// ===== TOAST =====
 const showToast = (message) => {
   const toast = $("toast");
   toast.textContent = message;
@@ -42,22 +43,25 @@ $$$("[data-page]").forEach(link => {
     e.preventDefault();
     const page = link.dataset.page;
     
-    // Update nav links
+    // Update all nav links
     $$$("[data-page]").forEach(l => l.classList.remove("active"));
-    link.classList.add("active");
+    $$$(`[data-page="${page}"]`).forEach(l => l.classList.add("active"));
     
     // Update pages
     $$$(".page").forEach(p => p.classList.remove("active"));
     $(page).classList.add("active");
+    
+    // Load profile if needed
+    if (page === "profile" && currentUser) {
+      loadProfilePage();
+    }
   });
 });
 
-// ===== THEME TOGGLE =====
+// ===== THEME =====
 const loadTheme = () => {
   const theme = localStorage.getItem("theme") || "dark";
-  if (theme === "light") {
-    document.body.classList.add("light");
-  }
+  if (theme === "light") document.body.classList.add("light");
 };
 
 $("themeBtn").addEventListener("click", () => {
@@ -68,52 +72,23 @@ $("themeBtn").addEventListener("click", () => {
 
 loadTheme();
 
-// ===== DRAWER =====
-const openDrawer = () => {
-  $("drawer").classList.add("open");
-  $("drawerOverlay").classList.add("open");
-  document.body.style.overflow = "hidden";
-};
-
-const closeDrawer = () => {
-  $("drawer").classList.remove("open");
-  $("drawerOverlay").classList.remove("open");
-  document.body.style.overflow = "";
-};
-
-$("avatarBtn")?.addEventListener("click", openDrawer);
-$("closeDrawer").addEventListener("click", closeDrawer);
-$("drawerOverlay").addEventListener("click", closeDrawer);
-
-// Drawer tabs
-$$$(".drawer-tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    const target = tab.dataset.tab;
-    $$$(".drawer-tab").forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    $$$(".drawer-content").forEach(c => c.classList.remove("active"));
-    $(`${target}Content`).classList.add("active");
-  });
-});
-
 // ===== AUTH =====
 const updateUI = (user) => {
   if (user) {
     $("loginBtn").style.display = "none";
-    $("avatarBtn").style.display = "block";
+    $("avatarContainer").style.display = "block";
     $("avatarImg").src = user.photoURL || DEFAULT_AVATAR;
-    $("drawerAvatar").src = user.photoURL || DEFAULT_AVATAR;
-    $("drawerName").textContent = user.displayName || "User";
-    $("drawerEmail").textContent = user.email || "";
+    $("profileNav").style.display = "flex";
+    
+    // Show update status button if owner
+    if (user.email === OWNER_EMAIL) {
+      $("updateStatusBtn").style.display = "flex";
+    }
   } else {
     $("loginBtn").style.display = "block";
-    $("avatarBtn").style.display = "none";
-    $("drawerName").textContent = "Guest";
-    $("drawerEmail").textContent = "";
-    $("drawerAvatar").src = DEFAULT_AVATAR;
-    $("profileName").textContent = "—";
-    $("profileEmail").textContent = "—";
-    $("profileBio").textContent = "—";
+    $("avatarContainer").style.display = "none";
+    $("profileNav").style.display = "none";
+    $("updateStatusBtn").style.display = "none";
   }
 };
 
@@ -122,30 +97,14 @@ const loadProfile = async (user) => {
   
   const userDoc = doc(db, "users", user.uid);
   
-  // Real-time listener
   onSnapshot(userDoc, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.data();
-      const name = data.name || user.displayName || "User";
-      const bio = data.bio || "No bio yet";
       const photoURL = data.photo ? `data:image/jpeg;base64,${data.photo}` : user.photoURL || DEFAULT_AVATAR;
-      
-      // Update all instances
-      $("drawerName").textContent = name;
-      $("drawerEmail").textContent = user.email || "";
-      $("profileName").textContent = name;
-      $("profileEmail").textContent = user.email || "—";
-      $("profileBio").textContent = bio;
-      $("editName").value = data.name || user.displayName || "";
-      $("editBio").value = data.bio || "";
-      
-      // Update avatars
       $("avatarImg").src = photoURL;
-      $("drawerAvatar").src = photoURL;
     }
   });
   
-  // Create user doc if doesn't exist
   const snapshot = await getDoc(userDoc);
   if (!snapshot.exists()) {
     await setDoc(userDoc, {
@@ -154,6 +113,40 @@ const loadProfile = async (user) => {
       photo: "",
       created: new Date().toISOString()
     });
+  }
+};
+
+const loadProfilePage = async () => {
+  if (!currentUser) return;
+  
+  const userDoc = doc(db, "users", currentUser.uid);
+  const snapshot = await getDoc(userDoc);
+  
+  if (snapshot.exists()) {
+    const data = snapshot.data();
+    const photoURL = data.photo ? `data:image/jpeg;base64,${data.photo}` : currentUser.photoURL || DEFAULT_AVATAR;
+    
+    $("profilePageAvatar").src = photoURL;
+    $("profilePageName").textContent = data.name || currentUser.displayName || "User";
+    $("profilePageBio").textContent = data.bio || "No bio yet.";
+    
+    // Format dates
+    const joinDate = new Date(data.created);
+    $("profileJoined").textContent = `Joined ${joinDate.toLocaleDateString()}`;
+    $("profileActive").textContent = `Active 4 minutes ago`;
+    
+    // Load stats
+    const scriptDoc = doc(db, "scripts", SCRIPT_ID);
+    const scriptSnap = await getDoc(scriptDoc);
+    if (scriptSnap.exists()) {
+      const scriptData = scriptSnap.data();
+      $("profileTotalViews").textContent = scriptData.views || 0;
+      $("profileTotalCopies").textContent = scriptData.copies || 0;
+      $("scriptViews").textContent = scriptData.views || 0;
+    }
+    
+    // Remove skeleton
+    $$(".profile-page-header").classList.remove("skeleton");
   }
 };
 
@@ -167,11 +160,10 @@ $("loginBtn").addEventListener("click", () => {
 // Logout
 $("logoutBtn").addEventListener("click", () => {
   signOut(auth);
-  closeDrawer();
   showToast("✓ Logged out successfully");
 });
 
-// Auth state listener
+// Auth state
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   updateUI(user);
@@ -180,76 +172,49 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// ===== SAVE PROFILE =====
-$("saveBtn").addEventListener("click", async () => {
-  if (!currentUser) {
-    showToast("❌ Please login first!");
-    return;
-  }
-  
-  const name = $("editName").value.trim();
-  const bio = $("editBio").value.trim();
-  const photoFile = $("editPhoto").files[0];
-  
-  if (!name) {
-    showToast("❌ Name is required!");
-    return;
-  }
-  
-  if (photoFile && photoFile.size > 512000) {
-    showToast("❌ Photo must be less than 500kb!");
-    return;
-  }
-  
-  $("editMessage").textContent = "🔍 Checking name...";
-  $("saveBtn").disabled = true;
-  
-  try {
-    // Check if name is taken
-    const q = query(collection(db, "users"), where("name", "==", name));
-    const snapshot = await getDocs(q);
-    let nameTaken = false;
-    snapshot.forEach(doc => {
-      if (doc.id !== currentUser.uid) nameTaken = true;
-    });
-    
-    if (nameTaken) {
-      showToast("❌ Name already taken!");
-      $("saveBtn").disabled = false;
-      return;
+// ===== SCRIPT STATUS =====
+const loadStatus = () => {
+  onSnapshot(doc(db, "scripts", SCRIPT_ID), (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      const status = data.status || "working";
+      const indicator = $("statusIndicator");
+      const text = $("statusText");
+      
+      indicator.className = `status-indicator ${status}`;
+      
+      const statusTexts = {
+        working: "Working",
+        updating: "Updating",
+        maintenance: "Maintenance",
+        broken: "Not Working"
+      };
+      
+      text.textContent = statusTexts[status] || "Working";
     }
-    
-    $("editMessage").textContent = "💾 Saving...";
-    
-    const userDoc = doc(db, "users", currentUser.uid);
-    const updateData = { name, bio };
-    
-    // Handle photo upload
-    if (photoFile) {
-      const photoData = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(",")[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(photoFile);
-      });
-      updateData.photo = photoData;
+  });
+};
+
+// Update status (owner only)
+$("updateStatusBtn").addEventListener("click", () => {
+  $("statusModal").classList.add("show");
+});
+
+$("cancelStatus").addEventListener("click", () => {
+  $("statusModal").classList.remove("show");
+});
+
+$$$(".status-option").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const status = btn.dataset.status;
+    try {
+      await updateDoc(doc(db, "scripts", SCRIPT_ID), { status });
+      showToast("✓ Status updated!");
+      $("statusModal").classList.remove("show");
+    } catch (err) {
+      showToast("❌ Failed to update status");
     }
-    
-    await setDoc(userDoc, updateData, { merge: true });
-    
-    showToast("✓ Profile saved successfully!");
-    $("editMessage").textContent = "";
-    $("editPhoto").value = "";
-    
-    // Switch to profile tab
-    $$$(".drawer-tab")[0].click();
-    
-  } catch (err) {
-    showToast("❌ Error: " + err.message);
-    $("editMessage").textContent = "";
-  } finally {
-    $("saveBtn").disabled = false;
-  }
+  });
 });
 
 // ===== STATS =====
@@ -274,12 +239,22 @@ const incStat = async (stat) => {
 };
 
 const loadStats = () => {
-  onSnapshot(doc(db, "scripts", SCRIPT_ID), (snapshot) => {
+  const scriptDoc = doc(db, "scripts", SCRIPT_ID);
+  
+  onSnapshot(scriptDoc, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.data();
+      
+      // Update stats
       $("viewCount").textContent = data.views || 0;
       $("copyCount").textContent = data.copies || 0;
       $("downloadCount").textContent = data.downloads || 0;
+      
+      // Remove skeleton
+      $$$("[data-skeleton]").forEach(el => {
+        el.classList.remove("skeleton");
+        el.classList.add("fade-in");
+      });
     }
   });
 };
@@ -292,7 +267,12 @@ const initViews = async () => {
     const snapshot = await getDoc(scriptDoc);
     
     if (!snapshot.exists()) {
-      await setDoc(scriptDoc, { views: 0, copies: 0, downloads: 0 });
+      await setDoc(scriptDoc, { 
+        views: 0, 
+        copies: 0, 
+        downloads: 0,
+        status: "working"
+      });
     }
     
     // Check cooldown
@@ -335,12 +315,12 @@ $("copyScriptBtn").addEventListener("click", async () => {
     // Visual feedback
     const btn = $("copyScriptBtn");
     btn.classList.add("copied");
-    const originalText = btn.innerHTML;
+    const originalHTML = btn.innerHTML;
     btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Copied!';
     
     setTimeout(() => {
       btn.classList.remove("copied");
-      btn.innerHTML = originalText;
+      btn.innerHTML = originalHTML;
     }, 2000);
     
     showToast("✓ Code copied successfully!");
@@ -408,4 +388,5 @@ $("downloadBtn").addEventListener("click", async () => {
 
 // ===== INIT =====
 loadStats();
+loadStatus();
 initViews();
