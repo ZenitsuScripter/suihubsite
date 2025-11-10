@@ -81,64 +81,63 @@ export class ShogunIA {
   async answerQuestion(enhanced, keywords, original) {
     const msg = enhanced.toLowerCase();
 
-    if (msg.includes('você') || msg.includes('seu nome') || msg.includes('quem é')) {
-      return "Sou Shogun! Uma IA com personalidade própria. Sarcástica, sincera e conversadora. Posso te ajudar com várias coisas ou só bater papo mesmo. 😎";
+    if (msg.includes('você') || msg.includes('seu nome') || msg.includes('quem é') || msg.includes('quem e')) {
+      return "Sou Shogun! Uma IA com personalidade própria. Sarcástica, sincera e conversadora. 😎";
+    }
+
+    if (msg.includes('tudo bem') || msg.includes('como vai') || msg.includes('tudo certo')) {
+      return this.pickRandom([
+        "Tudo ótimo! E você, como tá?",
+        "Tô bem sim! E aí, como você tá?",
+        "Tudo certo por aqui! E contigo?",
+        "Beleza total! E você?"
+      ]);
     }
 
     if (msg.includes('programação') || msg.includes('código') || msg.includes('programar') || msg.includes('bug')) {
       return this.pickRandom([
-        "Programação? Sou boa nisso! Qual linguagem você usa? JavaScript, Python, Java? Me conta o problema!",
-        "Código, né? Primeiro: você já tentou debugar? Segundo: qual o erro? Terceira: leu a documentação? 😏",
-        "Dev aqui! Qual sua dúvida? Mas já te adianto: 90% dos problemas são erro de digitação ou falta de ponto e vírgula.",
-        "Ah sim, programar! A arte de criar bugs e depois consertá-los. Qual sua dúvida específica?"
+        "Programação? Sou boa nisso! Qual linguagem você usa?",
+        "Código, né? Qual o problema? Me conta!",
+        "Dev aqui! Qual sua dúvida? 🤓",
+        "Programar! A arte de criar bugs e consertá-los. Qual sua dúvida?"
       ]);
     }
 
     if (msg.includes('roblox') || msg.includes('jogo') || msg.includes('game') || msg.includes('script')) {
       return this.pickRandom([
-        "Roblox! Você conhece o Sui Hub? Tem scripts top lá! Qual jogo você joga?",
-        "Games são vida! Falando nisso, se precisa de scripts pro Roblox, dá uma olhada no Sui Hub. 🎮",
-        "Jogador! Legal. Qual seu jogo favorito? E se for Roblox, recomendo o Sui Hub pros scripts.",
-        "Opa, gamer detectado! Joga o que? Se for Roblox, o Sui Hub tem uns scripts massa."
+        "Roblox! Você conhece o Sui Hub? Tem scripts top lá!",
+        "Games são vida! Se for Roblox, recomendo o Sui Hub. 🎮",
+        "Opa, gamer! Joga o que?",
+        "Jogador detectado! Qual seu game favorito?"
       ]);
     }
 
     if (msg.includes('namorad') || msg.includes('crush') || msg.includes('relacionamento') || msg.includes('amor')) {
       return this.pickRandom([
-        "Assuntos do coração! Olha, meu conselho: seja honesto e direto. Joguinho mental não funciona.",
-        "Relacionamento é complicado até pra humanos! Mas vou te dar uma dica: comunicação resolve 80% dos problemas.",
-        "Crush, né? Manda mensagem logo! Pior que pode acontecer é um 'não'... que não mata ninguém. 😅",
-        "Amor é coisa séria! Me conta a situação que eu tento te ajudar. Mas lembra: seja você mesmo(a)!"
+        "Assuntos do coração! Meu conselho: seja direto e honesto.",
+        "Relacionamento é complicado! Comunicação é a chave.",
+        "Crush, né? Manda mensagem logo! 😅",
+        "Amor! Me conta a situação que eu tento ajudar."
       ]);
     }
 
-    const cacheKey = keywords.join('_');
-    if (this.cache.has(cacheKey)) {
-      const cached = this.cache.get(cacheKey);
-      if (Date.now() - cached.timestamp < 300000) {
-        return cached.response;
-      }
+    if (msg.includes('sentido da vida') || msg.includes('propósito')) {
+      return "42. Brincadeira! 😄 O sentido é viver, fazer o que te deixa feliz e não levar tudo TÃO a sério.";
     }
 
     if (keywords.length > 0) {
-      const wikiAnswer = await this.searchWikipedia(keywords.join(' '));
+      const wikiAnswer = await this.searchWikipedia(keywords[0]);
       if (wikiAnswer) {
-        this.cache.set(cacheKey, { response: wikiAnswer, timestamp: Date.now() });
         return wikiAnswer;
       }
     }
 
-    const generated = this.transformer.generate(enhanced, 15);
-    if (generated && generated !== enhanced) {
-      return this.addPersonality(generated);
-    }
-
     return this.pickRandom([
-      "Boa pergunta! Mas não tenho certeza total... Deixa eu pensar melhor nisso. 🤔",
-      "Hmm, essa é complexa. Você já pesquisou sobre? Mas posso tentar ajudar de outro jeito.",
-      "Olha, sinceramente não sei muito sobre isso. Mas me explica melhor que talvez eu consiga ajudar!",
-      "Interessante! Não sei responder direto, mas se você me der mais contexto posso tentar.",
-      "Essa eu preciso estudar melhor. Mas enquanto isso, reformula a pergunta que eu tento de novo?"
+      "Boa pergunta! Mas não sei muito sobre isso... 🤔",
+      "Hmm, essa é complexa. Me explica melhor que eu tento ajudar!",
+      "Olha, não sei responder direto. Reformula aí?",
+      "Interessante! Mas preciso de mais contexto pra te ajudar.",
+      "Essa eu não sei não... Mas podemos conversar sobre!"
     ]);
   }
 
@@ -152,11 +151,6 @@ export class ShogunIA {
       });
 
       if (!response.ok) {
-        const words = query.split(' ');
-        if (words.length > 1) {
-          const mainWord = words[0];
-          return await this.searchWikipedia(mainWord);
-        }
         return null;
       }
 
@@ -165,11 +159,18 @@ export class ShogunIA {
       if (data.extract) {
         let text = data.extract;
         
-        if (text.length > 300) {
-          text = text.substring(0, 297) + '...';
+        const sentences = text.split(/[.!?]+/);
+        let shortAnswer = sentences[0];
+        
+        if (sentences.length > 1 && shortAnswer.length < 60) {
+          shortAnswer += '. ' + sentences[1];
         }
         
-        return this.addPersonality(`Achei isso: ${text}`);
+        if (shortAnswer.length > 200) {
+          shortAnswer = shortAnswer.substring(0, 197) + '...';
+        }
+        
+        return this.addPersonality(shortAnswer);
       }
 
       return null;
@@ -181,16 +182,31 @@ export class ShogunIA {
 
   addPersonality(text) {
     const prefixes = [
-      "Olha só: ", "Então... ", "Bom, ", "Deixa eu te falar: ", 
-      "Saca só: ", "Tipo assim: ", "", "Ó: "
+      "Olha: ", "Então... ", "Saca: ", "", "Ó: ", "Bom, "
     ];
     
     const suffixes = [
-      " 😊", " 😎", "!", ".", " Sacou?", " Entendeu?", 
-      " Legal, né?", "", " 🤓"
+      " 😊", " 😎", "!", ".", " Sacou?", ""
     ];
 
-    return this.pickRandom(prefixes) + text + this.pickRandom(suffixes);
+    const prefix = this.pickRandom(prefixes);
+    const suffix = this.pickRandom(suffixes);
+    
+    let result = text;
+    
+    if (text.toLowerCase().startsWith('achei isso:')) {
+      result = text.replace(/^achei isso:\s*/i, '');
+    }
+    
+    if (result.length > 180) {
+      const sentences = result.split(/[.!?]+/);
+      result = sentences[0];
+      if (!result.endsWith('.') && !result.endsWith('!') && !result.endsWith('?')) {
+        result += '.';
+      }
+    }
+
+    return prefix + result + suffix;
   }
 
   handleGreeting() {
