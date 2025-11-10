@@ -1,9 +1,8 @@
-// ===== FIREBASE IMPORTS =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { ShogunIA } from "./shogun.js";
 
-// ===== FIREBASE CONFIG =====
 const app = initializeApp({
   apiKey: "AIzaSyBG3D3ieH0f-3608DcWnIIfQS_n5tP7EHE",
   authDomain: "sui-hub.firebaseapp.com",
@@ -23,13 +22,12 @@ const DEFAULT_AVATAR = "https://www.gstatic.com/images/branding/product/1x/avata
 const OWNER_EMAIL = "mgplayer215@gmail.com";
 
 let currentUser = null;
+let shogunIA = new ShogunIA();
 
-// ===== DOM HELPERS =====
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => document.querySelector(sel);
 const $$$ = (sel) => document.querySelectorAll(sel);
 
-// ===== TOAST =====
 const showToast = (message) => {
   const toast = $("toast");
   toast.textContent = message;
@@ -37,28 +35,105 @@ const showToast = (message) => {
   setTimeout(() => toast.classList.remove("show"), 3000);
 };
 
-// ===== NAVIGATION =====
 $$$("[data-page]").forEach(link => {
   link.addEventListener("click", (e) => {
     e.preventDefault();
     const page = link.dataset.page;
     
-    // Update all nav links
     $$$("[data-page]").forEach(l => l.classList.remove("active"));
     $$$(`[data-page="${page}"]`).forEach(l => l.classList.add("active"));
     
-    // Update pages
     $$$(".page").forEach(p => p.classList.remove("active"));
     $(page).classList.add("active");
     
-    // Load profile if needed
     if (page === "profile" && currentUser) {
       loadProfilePage();
     }
   });
 });
 
-// ===== THEME =====
+$("shogunCard").addEventListener("click", () => {
+  $$$(".page").forEach(p => p.classList.remove("active"));
+  $("shogun").classList.add("active");
+  
+  if ($("chatMessages").children.length === 0) {
+    addMessage("Olá! Eu sou Shogun, sua assistente IA. Como posso ajudá-lo hoje?", "assistant");
+  }
+});
+
+$("backFromShogun").addEventListener("click", () => {
+  $$$(".page").forEach(p => p.classList.remove("active"));
+  $("projetos").classList.add("active");
+});
+
+const addMessage = (text, role) => {
+  const msgDiv = document.createElement("div");
+  msgDiv.className = `chat-message ${role}`;
+  
+  const avatar = document.createElement("div");
+  avatar.className = "message-avatar";
+  
+  if (role === "assistant") {
+    avatar.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>`;
+  } else {
+    if (currentUser && currentUser.photoURL) {
+      avatar.innerHTML = `<img src="${currentUser.photoURL}" alt="">`;
+    } else {
+      avatar.innerHTML = `<img src="${DEFAULT_AVATAR}" alt="">`;
+    }
+  }
+  
+  const content = document.createElement("div");
+  content.className = "message-content";
+  content.textContent = text;
+  
+  msgDiv.appendChild(avatar);
+  msgDiv.appendChild(content);
+  
+  $("chatMessages").appendChild(msgDiv);
+  $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
+};
+
+$("sendMessage").addEventListener("click", async () => {
+  const input = $("chatInput");
+  const message = input.value.trim();
+  
+  if (!message) return;
+  
+  addMessage(message, "user");
+  input.value = "";
+  
+  const typingDiv = document.createElement("div");
+  typingDiv.className = "chat-message assistant typing";
+  typingDiv.innerHTML = `
+    <div class="message-avatar">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    </div>
+    <div class="message-content">
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+    </div>
+  `;
+  $("chatMessages").appendChild(typingDiv);
+  $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
+  
+  const response = await shogunIA.chat(message);
+  
+  typingDiv.remove();
+  addMessage(response, "assistant");
+});
+
+$("chatInput").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    $("sendMessage").click();
+  }
+});
+
 const loadTheme = () => {
   const theme = localStorage.getItem("theme") || "dark";
   if (theme === "light") document.body.classList.add("light");
@@ -72,7 +147,6 @@ $("themeBtn").addEventListener("click", () => {
 
 loadTheme();
 
-// ===== AUTH =====
 const updateUI = (user) => {
   if (user) {
     $("loginBtn").style.display = "none";
@@ -80,7 +154,6 @@ const updateUI = (user) => {
     $("avatarImg").src = user.photoURL || DEFAULT_AVATAR;
     $("profileNav").style.display = "flex";
     
-    // Show update status button if owner
     if (user.email === OWNER_EMAIL) {
       $("updateStatusBtn").style.display = "flex";
     }
@@ -130,12 +203,10 @@ const loadProfilePage = async () => {
     $("profilePageName").textContent = data.name || currentUser.displayName || "User";
     $("profilePageBio").textContent = data.bio || "No bio yet.";
     
-    // Format dates
     const joinDate = new Date(data.created);
     $("profileJoined").textContent = `Joined ${joinDate.toLocaleDateString()}`;
     $("profileActive").textContent = `Active 4 minutes ago`;
     
-    // Load stats
     const scriptDoc = doc(db, "scripts", SCRIPT_ID);
     const scriptSnap = await getDoc(scriptDoc);
     if (scriptSnap.exists()) {
@@ -145,25 +216,21 @@ const loadProfilePage = async () => {
       $("scriptViews").textContent = scriptData.views || 0;
     }
     
-    // Remove skeleton
     $$(".profile-page-header").classList.remove("skeleton");
   }
 };
 
-// Login
 $("loginBtn").addEventListener("click", () => {
   signInWithPopup(auth, provider).catch(err => {
     showToast("❌ Login failed: " + err.message);
   });
 });
 
-// Logout
 $("logoutBtn").addEventListener("click", () => {
   signOut(auth);
   showToast("✓ Logged out successfully");
 });
 
-// Auth state
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   updateUI(user);
@@ -172,7 +239,6 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// ===== SCRIPT STATUS =====
 const loadStatus = () => {
   onSnapshot(doc(db, "scripts", SCRIPT_ID), (snapshot) => {
     if (snapshot.exists()) {
@@ -195,7 +261,6 @@ const loadStatus = () => {
   });
 };
 
-// Update status (owner only)
 $("updateStatusBtn").addEventListener("click", () => {
   $("statusModal").classList.add("show");
 });
@@ -217,7 +282,6 @@ $$$(".status-option").forEach(btn => {
   });
 });
 
-// ===== STATS =====
 const getFingerprint = () => {
   const data = navigator.userAgent + navigator.language + screen.width + screen.height;
   let hash = 0;
@@ -245,12 +309,10 @@ const loadStats = () => {
     if (snapshot.exists()) {
       const data = snapshot.data();
       
-      // Update stats
       $("viewCount").textContent = data.views || 0;
       $("copyCount").textContent = data.copies || 0;
       $("downloadCount").textContent = data.downloads || 0;
       
-      // Remove skeleton
       $$$("[data-skeleton]").forEach(el => {
         el.classList.remove("skeleton");
         el.classList.add("fade-in");
@@ -275,7 +337,6 @@ const initViews = async () => {
       });
     }
     
-    // Check cooldown
     const cooldownData = localStorage.getItem(key);
     if (cooldownData) {
       const data = JSON.parse(cooldownData);
@@ -283,7 +344,6 @@ const initViews = async () => {
       if (data.view && now - data.view < COOLDOWN) return;
     }
     
-    // Increment view
     await incStat("views");
     localStorage.setItem(key, JSON.stringify({ view: Date.now() }));
     
@@ -292,12 +352,10 @@ const initViews = async () => {
   }
 };
 
-// ===== COPY SCRIPT =====
 $("copyScriptBtn").addEventListener("click", async () => {
   const code = $("scriptCode").textContent;
   const key = currentUser ? `cooldown_${currentUser.uid}` : `cooldown_${getFingerprint()}`;
   
-  // Check cooldown
   const cooldownData = localStorage.getItem(key);
   if (cooldownData) {
     const data = JSON.parse(cooldownData);
@@ -312,7 +370,6 @@ $("copyScriptBtn").addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText(code);
     
-    // Visual feedback
     const btn = $("copyScriptBtn");
     btn.classList.add("copied");
     const originalHTML = btn.innerHTML;
@@ -325,10 +382,8 @@ $("copyScriptBtn").addEventListener("click", async () => {
     
     showToast("✓ Code copied successfully!");
     
-    // Update stats
     await incStat("copies");
     
-    // Save cooldown
     const data = JSON.parse(cooldownData || "{}");
     data.copy = Date.now();
     localStorage.setItem(key, JSON.stringify(data));
@@ -338,7 +393,6 @@ $("copyScriptBtn").addEventListener("click", async () => {
   }
 });
 
-// ===== DOWNLOAD =====
 $("downloadBtn").addEventListener("click", async () => {
   if (!currentUser) {
     showToast("❌ Please login to download!");
@@ -347,7 +401,6 @@ $("downloadBtn").addEventListener("click", async () => {
   
   const key = `cooldown_${currentUser.uid}`;
   
-  // Check cooldown
   const cooldownData = localStorage.getItem(key);
   if (cooldownData) {
     const data = JSON.parse(cooldownData);
@@ -373,10 +426,8 @@ $("downloadBtn").addEventListener("click", async () => {
     
     showToast("✓ Download started!");
     
-    // Update stats
     await incStat("downloads");
     
-    // Save cooldown
     const data = JSON.parse(cooldownData || "{}");
     data.download = Date.now();
     localStorage.setItem(key, JSON.stringify(data));
@@ -386,7 +437,6 @@ $("downloadBtn").addEventListener("click", async () => {
   }
 });
 
-// ===== INIT =====
 loadStats();
 loadStatus();
 initViews();
