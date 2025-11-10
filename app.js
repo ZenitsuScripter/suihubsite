@@ -1,9 +1,9 @@
-// ===== IMPORTS FIREBASE =====
+// ===== FIREBASE IMPORTS =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, onSnapshot, serverTimestamp, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-// ===== CONFIG FIREBASE =====
+// ===== FIREBASE CONFIG =====
 const app = initializeApp({
   apiKey: "AIzaSyBG3D3ieH0f-3608DcWnIIfQS_n5tP7EHE",
   authDomain: "sui-hub.firebaseapp.com",
@@ -18,475 +18,394 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 const SCRIPT_ID = "demonfall-sui-hub";
-const COOLDOWN = 5 * 60 * 1000; // 5 minutos
+const COOLDOWN = 5 * 60 * 1000;
 const DEFAULT_AVATAR = "https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_512dp.png";
 
 let currentUser = null;
 
+// ===== DOM ELEMENTS =====
+const $ = (id) => document.getElementById(id);
+const $$ = (sel) => document.querySelector(sel);
+const $$$ = (sel) => document.querySelectorAll(sel);
+
 // ===== TOAST HELPER =====
 const showToast = (message) => {
-  const toast = $("statusMsg");
+  const toast = $("toast");
   toast.textContent = message;
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 3000);
 };
 
-// ===== ELEMENTOS DOM =====
-const $ = id => document.getElementById(id);
-const els = {
-  mobileMenuBtn: $("mobileMenuBtn"),
-  mobileMenu: $("mobileMenu"),
-  closeMobileMenu: $("closeMobileMenu"),
-  mobileLoginBtn: $("mobileLoginBtn"),
-  mobileAvatarBtn: $("mobileAvatarBtn"),
-  mobileAvatarImg: $("mobileAvatarImg"),
-  loginBtn: $("loginBtn"),
-  avatarBtn: $("avatarBtn"),
-  avatarImg: $("avatarImg"),
-  drawer: $("drawer"),
-  drawerOverlay: $("drawerOverlay"),
-  closeDrawer: $("closeDrawer"),
-  drawerAvatar: $("drawerAvatar"),
-  drawerName: $("drawerName"),
-  drawerEmail: $("drawerEmail"),
-  logoutDrawer: $("logoutDrawer"),
-  profileName: $("profileName"),
-  profileEmail: $("profileEmail"),
-  profileBio: $("profileBio"),
-  editName: $("editName"),
-  editBio: $("editBio"),
-  editPhoto: $("editPhoto"),
-  saveProfileBtn: $("saveProfileBtn"),
-  editMsg: $("editMsg"),
-  copyBtn: $("copyBtn"),
-  downloadBtn: $("downloadBtn"),
-  codeArea: $("codeArea"),
-  statusMsg: $("statusMsg"),
-  themeToggle: $("themeToggle"),
-  viewCount: $("viewCount"),
-  copyCount: $("copyCount"),
-  downloadCount: $("downloadCount"),
-  mobileAvatarImg: $("mobileAvatarImg")
-};
+// ===== NAVIGATION =====
+$$$("[data-page]").forEach(link => {
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    const page = link.dataset.page;
+    
+    // Update nav links
+    $$$("[data-page]").forEach(l => l.classList.remove("active"));
+    link.classList.add("active");
+    
+    // Update pages
+    $$$(".page").forEach(p => p.classList.remove("active"));
+    $(page).classList.add("active");
+  });
+});
 
-// ===== UI FUNCTIONS =====
-const openMobile = () => {
-  els.mobileMenu.classList.add("open");
-  els.drawerOverlay.classList.add("open");
-  document.body.style.overflow = "hidden";
-};
-
-const closeMobile = () => {
-  els.mobileMenu.classList.remove("open");
-  if (!els.drawer.classList.contains("open")) {
-    els.drawerOverlay.classList.remove("open");
-    document.body.style.overflow = "";
+// ===== THEME TOGGLE =====
+const loadTheme = () => {
+  const theme = localStorage.getItem("theme") || "dark";
+  if (theme === "light") {
+    document.body.classList.add("light");
   }
 };
 
+$("themeBtn").addEventListener("click", () => {
+  document.body.classList.toggle("light");
+  const theme = document.body.classList.contains("light") ? "light" : "dark";
+  localStorage.setItem("theme", theme);
+});
+
+loadTheme();
+
+// ===== DRAWER =====
 const openDrawer = () => {
-  els.drawer.classList.add("open");
-  els.drawerOverlay.classList.add("open");
-  els.mobileMenu.classList.remove("open");
+  $("drawer").classList.add("open");
+  $("drawerOverlay").classList.add("open");
   document.body.style.overflow = "hidden";
 };
 
 const closeDrawer = () => {
-  els.drawer.classList.remove("open");
-  els.drawerOverlay.classList.remove("open");
+  $("drawer").classList.remove("open");
+  $("drawerOverlay").classList.remove("open");
   document.body.style.overflow = "";
 };
 
-// ===== THEME =====
-const loadTheme = () => {
-  const t = localStorage.getItem("theme") || "dark";
-  document.body.classList.toggle("light", t === "light");
-  els.themeToggle.checked = t === "light";
-};
+$("avatarBtn")?.addEventListener("click", openDrawer);
+$("closeDrawer").addEventListener("click", closeDrawer);
+$("drawerOverlay").addEventListener("click", closeDrawer);
 
-const saveTheme = () => {
-  const t = els.themeToggle.checked ? "light" : "dark";
-  localStorage.setItem("theme", t);
-  document.body.classList.toggle("light", t === "light");
-};
-
-// ===== NAVIGATION TABS =====
-document.querySelectorAll(".nav-btn, .mobile-nav-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const tabId = btn.dataset.tab;
-    
-    // Update nav buttons
-    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".mobile-nav-btn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(`[data-tab="${tabId}"]`).forEach(b => b.classList.add("active"));
-    
-    // Update tab content
-    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-    $(tabId).classList.add("active");
-    
-    // Close mobile menu if open
-    closeMobile();
-  });
-});
-
-// ===== DRAWER TABS =====
-document.querySelectorAll("[data-drawer-tab]").forEach(b => {
-  b.addEventListener("click", () => {
-    const t = b.dataset.drawerTab;
-    document.querySelectorAll("[data-drawer-tab]").forEach(x => x.classList.remove("active"));
-    b.classList.add("active");
-    document.querySelectorAll(".drawer-tab-content").forEach(c => c.classList.remove("active"));
-    $(t).classList.add("active");
+// Drawer tabs
+$$$(".drawer-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    const target = tab.dataset.tab;
+    $$$(".drawer-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    $$$(".drawer-content").forEach(c => c.classList.remove("active"));
+    $(`${target}Content`).classList.add("active");
   });
 });
 
 // ===== AUTH =====
-const loadProfile = async u => {
-  if (!u) return;
-  const userDoc = doc(db, "users", u.uid);
-  onSnapshot(userDoc, d => {
-    if (!d.exists()) return;
-    const data = d.data();
-    const name = data.name || u.displayName || "Usuário";
-    const photo = data.photo || u.photoURL || DEFAULT_AVATAR;
-    els.drawerName.textContent = name;
-    els.drawerEmail.textContent = u.email || "";
-    els.drawerAvatar.src = photo;
-    els.avatarImg.src = photo;
-    els.mobileAvatarImg.src = photo;
-    els.profileName.textContent = name;
-    els.profileEmail.textContent = u.email || "—";
-    els.profileBio.textContent = data.bio || "Sem biografia";
-    els.editName.value = data.name || u.displayName || "";
-    els.editBio.value = data.bio || "";
-  });
+const updateUI = (user) => {
+  if (user) {
+    $("loginBtn").style.display = "none";
+    $("avatarBtn").style.display = "block";
+    $("avatarImg").src = user.photoURL || DEFAULT_AVATAR;
+    $("drawerAvatar").src = user.photoURL || DEFAULT_AVATAR;
+    $("drawerName").textContent = user.displayName || "User";
+    $("drawerEmail").textContent = user.email || "";
+  } else {
+    $("loginBtn").style.display = "block";
+    $("avatarBtn").style.display = "none";
+    $("drawerName").textContent = "Guest";
+    $("drawerEmail").textContent = "";
+    $("drawerAvatar").src = DEFAULT_AVATAR;
+    $("profileName").textContent = "—";
+    $("profileEmail").textContent = "—";
+    $("profileBio").textContent = "—";
+  }
+};
 
-  const snap = await getDoc(userDoc);
-  if (!snap.exists()) {
+const loadProfile = async (user) => {
+  if (!user) return;
+  
+  const userDoc = doc(db, "users", user.uid);
+  
+  // Real-time listener
+  onSnapshot(userDoc, (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      const name = data.name || user.displayName || "User";
+      const bio = data.bio || "No bio yet";
+      const photoURL = data.photo ? `data:image/jpeg;base64,${data.photo}` : user.photoURL || DEFAULT_AVATAR;
+      
+      // Update all instances
+      $("drawerName").textContent = name;
+      $("drawerEmail").textContent = user.email || "";
+      $("profileName").textContent = name;
+      $("profileEmail").textContent = user.email || "—";
+      $("profileBio").textContent = bio;
+      $("editName").value = data.name || user.displayName || "";
+      $("editBio").value = data.bio || "";
+      
+      // Update avatars
+      $("avatarImg").src = photoURL;
+      $("drawerAvatar").src = photoURL;
+    }
+  });
+  
+  // Create user doc if doesn't exist
+  const snapshot = await getDoc(userDoc);
+  if (!snapshot.exists()) {
     await setDoc(userDoc, {
-      name: u.displayName || "",
+      name: user.displayName || "",
       bio: "",
-      photo: u.photoURL || "",
+      photo: "",
       created: new Date().toISOString()
     });
   }
 };
 
-const handleLogin = () => {
-  signInWithPopup(auth, provider).catch(e => {
-    alert("Erro ao fazer login: " + e.message);
+// Login
+$("loginBtn").addEventListener("click", () => {
+  signInWithPopup(auth, provider).catch(err => {
+    showToast("❌ Login failed: " + err.message);
   });
-};
+});
 
-onAuthStateChanged(auth, async u => {
-  currentUser = u;
-  if (u) {
-    els.loginBtn.style.display = "none";
-    els.avatarBtn.classList.add("show");
-    els.mobileLoginBtn.style.display = "none";
-    els.mobileAvatarBtn.style.display = "block";
-    els.avatarImg.src = u.photoURL || DEFAULT_AVATAR;
-    els.mobileAvatarImg.src = u.photoURL || DEFAULT_AVATAR;
-    await loadProfile(u);
-  } else {
-    els.loginBtn.style.display = "inline-flex";
-    els.avatarBtn.classList.remove("show");
-    els.mobileLoginBtn.style.display = "inline-flex";
-    els.mobileAvatarBtn.style.display = "none";
-    els.drawerName.textContent = "Convidado";
-    els.drawerEmail.textContent = "";
-    els.drawerAvatar.src = DEFAULT_AVATAR;
-    els.profileName.textContent = "—";
-    els.profileEmail.textContent = "—";
-    els.profileBio.textContent = "—";
+// Logout
+$("logoutBtn").addEventListener("click", () => {
+  signOut(auth);
+  closeDrawer();
+  showToast("✓ Logged out successfully");
+});
+
+// Auth state listener
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  updateUI(user);
+  if (user) {
+    await loadProfile(user);
   }
 });
 
 // ===== SAVE PROFILE =====
-els.saveProfileBtn.addEventListener("click", async () => {
+$("saveBtn").addEventListener("click", async () => {
   if (!currentUser) {
-    els.editMsg.textContent = "❌ Você precisa estar logado!";
+    showToast("❌ Please login first!");
     return;
   }
-  const name = els.editName.value.trim();
-  const bio = els.editBio.value.trim();
-  const photo = els.editPhoto.files[0];
-
+  
+  const name = $("editName").value.trim();
+  const bio = $("editBio").value.trim();
+  const photoFile = $("editPhoto").files[0];
+  
   if (!name) {
-    els.editMsg.textContent = "❌ Nome é obrigatório!";
+    showToast("❌ Name is required!");
     return;
   }
-  if (photo && photo.size > 512000) {
-    els.editMsg.textContent = "❌ Foto deve ter menos de 500kb!";
+  
+  if (photoFile && photoFile.size > 512000) {
+    showToast("❌ Photo must be less than 500kb!");
     return;
   }
-
-  els.editMsg.textContent = "🔍 Verificando nome...";
-  els.saveProfileBtn.disabled = true;
-
+  
+  $("editMessage").textContent = "🔍 Checking name...";
+  $("saveBtn").disabled = true;
+  
   try {
+    // Check if name is taken
     const q = query(collection(db, "users"), where("name", "==", name));
-    const snap = await getDocs(q);
-    let exists = false;
-    snap.forEach(d => {
-      if (d.id !== currentUser.uid) exists = true;
+    const snapshot = await getDocs(q);
+    let nameTaken = false;
+    snapshot.forEach(doc => {
+      if (doc.id !== currentUser.uid) nameTaken = true;
     });
-
-    if (exists) {
-      els.editMsg.textContent = "❌ Este nome já está em uso!";
-      els.saveProfileBtn.disabled = false;
+    
+    if (nameTaken) {
+      showToast("❌ Name already taken!");
+      $("saveBtn").disabled = false;
       return;
     }
-
-    els.editMsg.textContent = "💾 Salvando...";
-    let photoData = null;
-    if (photo) {
-      photoData = await new Promise((res, rej) => {
-        const r = new FileReader();
-        r.onload = () => res(r.result.split(",")[1]);
-        r.onerror = rej;
-        r.readAsDataURL(photo);
-      });
-    }
-
+    
+    $("editMessage").textContent = "💾 Saving...";
+    
     const userDoc = doc(db, "users", currentUser.uid);
-    if (photoData) {
-      await setDoc(userDoc, { name, bio, photo: photoData }, { merge: true });
-    } else {
-      await setDoc(userDoc, { name, bio }, { merge: true });
+    const updateData = { name, bio };
+    
+    // Handle photo upload
+    if (photoFile) {
+      const photoData = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(photoFile);
+      });
+      updateData.photo = photoData;
     }
-
-    await loadProfile(currentUser);
-    els.editMsg.textContent = "✓ Perfil salvo com sucesso!";
-    els.editPhoto.value = "";
-    setTimeout(() => {
-      els.editMsg.textContent = "";
-    }, 3000);
-  } catch (e) {
-    els.editMsg.textContent = "❌ Erro ao salvar: " + e.message;
+    
+    await setDoc(userDoc, updateData, { merge: true });
+    
+    showToast("✓ Profile saved successfully!");
+    $("editMessage").textContent = "";
+    $("editPhoto").value = "";
+    
+    // Switch to profile tab
+    $$$(".drawer-tab")[0].click();
+    
+  } catch (err) {
+    showToast("❌ Error: " + err.message);
+    $("editMessage").textContent = "";
   } finally {
-    els.saveProfileBtn.disabled = false;
+    $("saveBtn").disabled = false;
   }
 });
 
 // ===== STATS =====
 const getFingerprint = () => {
-  const s = navigator.userAgent + navigator.language + screen.width + screen.height + screen.colorDepth + new Date().getTimezoneOffset();
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    h = ((h << 5) - h) + c;
-    h = h & h;
+  const data = navigator.userAgent + navigator.language + screen.width + screen.height;
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    hash = ((hash << 5) - hash) + data.charCodeAt(i);
+    hash = hash & hash;
   }
-  return h.toString(36);
+  return hash.toString(36);
 };
 
-const incStat = async stat => {
+const incStat = async (stat) => {
   try {
-    await updateDoc(doc(db, "scripts", SCRIPT_ID), { [stat]: increment(1) });
-  } catch (e) {
-    console.error("Erro:", e);
+    await updateDoc(doc(db, "scripts", SCRIPT_ID), {
+      [stat]: increment(1)
+    });
+  } catch (err) {
+    console.error("Stats error:", err);
   }
 };
 
 const loadStats = () => {
-  onSnapshot(doc(db, "scripts", SCRIPT_ID), d => {
-    if (d.exists()) {
-      const data = d.data();
-      els.viewCount.textContent = data.views || 0;
-      els.copyCount.textContent = data.copies || 0;
-      els.downloadCount.textContent = data.downloads || 0;
+  onSnapshot(doc(db, "scripts", SCRIPT_ID), (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      $("viewCount").textContent = data.views || 0;
+      $("copyCount").textContent = data.copies || 0;
+      $("downloadCount").textContent = data.downloads || 0;
     }
   });
 };
 
 const initViews = async () => {
   const key = currentUser ? `cooldown_${currentUser.uid}` : `cooldown_${getFingerprint()}`;
+  
   try {
     const scriptDoc = doc(db, "scripts", SCRIPT_ID);
-    const snap = await getDoc(scriptDoc);
-    if (!snap.exists()) {
+    const snapshot = await getDoc(scriptDoc);
+    
+    if (!snapshot.exists()) {
       await setDoc(scriptDoc, { views: 0, copies: 0, downloads: 0 });
     }
-
-    const cd = localStorage.getItem(key);
-    if (cd) {
-      const data = JSON.parse(cd);
+    
+    // Check cooldown
+    const cooldownData = localStorage.getItem(key);
+    if (cooldownData) {
+      const data = JSON.parse(cooldownData);
       const now = Date.now();
       if (data.view && now - data.view < COOLDOWN) return;
-      if (data.copy && now - data.copy < COOLDOWN) {
-        els.copyBtn.disabled = true;
-        els.copyBtn.textContent = "⏳ Aguarde...";
-        setTimeout(() => {
-          els.copyBtn.disabled = false;
-          els.copyBtn.textContent = "📋 Copiar";
-        }, COOLDOWN - (now - data.copy));
-      }
-      if (data.download && now - data.download < COOLDOWN) {
-        els.downloadBtn.disabled = true;
-        els.downloadBtn.textContent = "⏳ Aguarde...";
-        setTimeout(() => {
-          els.downloadBtn.disabled = false;
-          els.downloadBtn.textContent = "💾 Baixar";
-        }, COOLDOWN - (now - data.download));
-      }
     }
-
-    if (currentUser) {
-      const cdDoc = doc(db, "cooldowns", currentUser.uid);
-      const cdSnap = await getDoc(cdDoc);
-      if (cdSnap.exists()) {
-        const data = cdSnap.data();
-        const now = Date.now();
-        if (data.viewTimestamp) {
-          const t = data.viewTimestamp.toMillis();
-          if (now - t < COOLDOWN) return;
-        }
-      }
-    }
-
+    
+    // Increment view
     await incStat("views");
-    const now = Date.now();
-    const cooldowns = { view: now };
-    if (currentUser) {
-      const cdDoc = doc(db, "cooldowns", currentUser.uid);
-      await setDoc(cdDoc, { viewTimestamp: serverTimestamp() }, { merge: true });
-    }
-    localStorage.setItem(key, JSON.stringify(cooldowns));
-  } catch (e) {
-    console.error("Erro:", e);
+    localStorage.setItem(key, JSON.stringify({ view: Date.now() }));
+    
+  } catch (err) {
+    console.error("View error:", err);
   }
 };
 
-// ===== COPY BUTTON =====
-els.copyBtn.addEventListener("click", async () => {
-  if (els.copyBtn.disabled) return;
+// ===== COPY SCRIPT =====
+$("copyScriptBtn").addEventListener("click", async () => {
+  const code = $("scriptCode").textContent;
   const key = currentUser ? `cooldown_${currentUser.uid}` : `cooldown_${getFingerprint()}`;
-  const cd = localStorage.getItem(key);
-  if (cd) {
-    const data = JSON.parse(cd);
+  
+  // Check cooldown
+  const cooldownData = localStorage.getItem(key);
+  if (cooldownData) {
+    const data = JSON.parse(cooldownData);
     const now = Date.now();
     if (data.copy && now - data.copy < COOLDOWN) {
       const remaining = Math.ceil((COOLDOWN - (now - data.copy)) / 1000);
-      showToast(`⏳ Aguarde ${remaining} segundos para copiar novamente`);
+      showToast(`⏳ Wait ${remaining}s to copy again`);
       return;
     }
   }
-
-  if (currentUser) {
-    const cdDoc = doc(db, "cooldowns", currentUser.uid);
-    const cdSnap = await getDoc(cdDoc);
-    if (cdSnap.exists()) {
-      const data = cdSnap.data();
-      if (data.copyTimestamp) {
-        const t = data.copyTimestamp.toMillis();
-        const now = Date.now();
-        if (now - t < COOLDOWN) {
-          const remaining = Math.ceil((COOLDOWN - (now - t)) / 1000);
-          showToast(`⏳ Aguarde ${remaining} segundos para copiar novamente`);
-          return;
-        }
-      }
-    }
-  }
-
-  navigator.clipboard.writeText(els.codeArea.textContent).then(async () => {
+  
+  try {
+    await navigator.clipboard.writeText(code);
+    
     // Visual feedback
-    els.copyBtn.classList.add("copied");
-    const originalText = els.copyBtn.querySelector(".copy-text").textContent;
-    els.copyBtn.querySelector(".copy-text").textContent = "Copiado!";
-    showToast("✓ Código copiado com sucesso!");
+    const btn = $("copyScriptBtn");
+    btn.classList.add("copied");
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Copied!';
     
     setTimeout(() => {
-      els.copyBtn.classList.remove("copied");
-      els.copyBtn.querySelector(".copy-text").textContent = originalText;
+      btn.classList.remove("copied");
+      btn.innerHTML = originalText;
     }, 2000);
     
+    showToast("✓ Code copied successfully!");
+    
+    // Update stats
     await incStat("copies");
-    const now = Date.now();
-    const cooldowns = localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : {};
-    cooldowns.copy = now;
-    localStorage.setItem(key, JSON.stringify(cooldowns));
-    if (currentUser) {
-      const cdDoc = doc(db, "cooldowns", currentUser.uid);
-      await setDoc(cdDoc, { copyTimestamp: serverTimestamp() }, { merge: true });
-    }
-    els.copyBtn.disabled = true;
-    setTimeout(() => {
-      els.copyBtn.disabled = false;
-    }, COOLDOWN);
-  });
+    
+    // Save cooldown
+    const data = JSON.parse(cooldownData || "{}");
+    data.copy = Date.now();
+    localStorage.setItem(key, JSON.stringify(data));
+    
+  } catch (err) {
+    showToast("❌ Failed to copy code");
+  }
 });
 
-// ===== DOWNLOAD BUTTON =====
-els.downloadBtn.addEventListener("click", async () => {
+// ===== DOWNLOAD =====
+$("downloadBtn").addEventListener("click", async () => {
   if (!currentUser) {
-    showToast("❌ Faça login para baixar!");
+    showToast("❌ Please login to download!");
     return;
   }
-  if (els.downloadBtn.disabled) return;
+  
   const key = `cooldown_${currentUser.uid}`;
-  const cdDoc = doc(db, "cooldowns", currentUser.uid);
-  const cdSnap = await getDoc(cdDoc);
-  if (cdSnap.exists()) {
-    const data = cdSnap.data();
-    if (data.downloadTimestamp) {
-      const t = data.downloadTimestamp.toMillis();
-      const now = Date.now();
-      if (now - t < COOLDOWN) {
-        const remaining = Math.ceil((COOLDOWN - (now - t)) / 1000);
-        showToast(`⏳ Aguarde ${remaining} segundos para baixar novamente`);
-        return;
-      }
+  
+  // Check cooldown
+  const cooldownData = localStorage.getItem(key);
+  if (cooldownData) {
+    const data = JSON.parse(cooldownData);
+    const now = Date.now();
+    if (data.download && now - data.download < COOLDOWN) {
+      const remaining = Math.ceil((COOLDOWN - (now - data.download)) / 1000);
+      showToast(`⏳ Wait ${remaining}s to download again`);
+      return;
     }
   }
-
-  const blob = new Blob([els.codeArea.textContent], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "sui-hub-demonfall.lua";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  await incStat("downloads");
-  await setDoc(cdDoc, { downloadTimestamp: serverTimestamp() }, { merge: true });
-  const cooldowns = localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : {};
-  cooldowns.download = Date.now();
-  localStorage.setItem(key, JSON.stringify(cooldowns));
-  showToast("✓ Download iniciado!");
-  els.downloadBtn.disabled = true;
-  setTimeout(() => {
-    els.downloadBtn.disabled = false;
-  }, COOLDOWN);
-});
-
-// ===== EVENT LISTENERS =====
-els.loginBtn.addEventListener("click", handleLogin);
-els.mobileLoginBtn.addEventListener("click", () => {
-  closeMobile();
-  handleLogin();
-});
-els.logoutDrawer.addEventListener("click", () => {
-  signOut(auth);
-  closeDrawer();
-});
-els.themeToggle.addEventListener("change", saveTheme);
-els.mobileMenuBtn.addEventListener("click", openMobile);
-els.closeMobileMenu.addEventListener("click", closeMobile);
-els.avatarBtn.addEventListener("click", openDrawer);
-els.mobileAvatarBtn.addEventListener("click", () => {
-  closeMobile();
-  openDrawer();
-});
-els.closeDrawer.addEventListener("click", closeDrawer);
-els.drawerOverlay.addEventListener("click", () => {
-  closeDrawer();
-  closeMobile();
+  
+  try {
+    const code = $("scriptCode").textContent;
+    const blob = new Blob([code], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sui-hub-demonfall.lua";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast("✓ Download started!");
+    
+    // Update stats
+    await incStat("downloads");
+    
+    // Save cooldown
+    const data = JSON.parse(cooldownData || "{}");
+    data.download = Date.now();
+    localStorage.setItem(key, JSON.stringify(data));
+    
+  } catch (err) {
+    showToast("❌ Download failed");
+  }
 });
 
 // ===== INIT =====
-loadTheme();
-initViews();
 loadStats();
+initViews();
