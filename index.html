@@ -3,90 +3,164 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assistindo Juntos - Série</title>
+  <title>Assistindo Juntos - Host Control</title>
+  <script src="https://js.pusher.com/8.4.0-rc2/pusher.min.js"></script>
   <style>
     body {
       background: #0a0a0a;
-      color: white;
+      color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
       margin: 0;
     }
-    h1 {
-      color: #ff4d4d;
-      margin-bottom: 10px;
+    h1 { 
+      color: #ff4d4d; 
+      margin: 10px 0 5px; 
+    }
+    .status {
+      font-size: 1.3em;
+      margin: 15px 0;
+      padding: 12px;
+      border-radius: 8px;
+      min-height: 50px;
     }
     video {
       width: 100%;
       max-width: 960px;
-      margin: 30px auto;
+      margin: 25px auto;
       display: block;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.9);
     }
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
+    button {
+      padding: 14px 28px;
+      margin: 8px;
+      font-size: 1.1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+    }
+    .host-btn { 
+      background: #ff4d4d; 
+      color: white; 
     }
     .info {
-      margin: 20px 0;
       color: #aaa;
-      font-size: 1.1em;
-    }
-    .link {
-      background: #1f1f1f;
-      padding: 12px 20px;
-      border-radius: 8px;
-      display: inline-block;
-      margin: 10px 0;
-      word-break: break-all;
-      font-family: monospace;
+      margin: 25px 0;
+      line-height: 1.6;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🎥 Assistindo Juntos</h1>
-    <p class="info">Episódio sincronizado manualmente por enquanto</p>
+  <h1>🎥 Assistindo Juntos</h1>
+  
+  <div class="status" id="status">Escolha seu modo abaixo</div>
 
-    <video id="videoPlayer" controls autoplay>
-      <source id="videoSource" src="" type="video/mp4">
-      Seu navegador não suporta o vídeo.
-    </video>
+  <div>
+    <button onclick="becomeHost()" class="host-btn">👑 Sou o Host (Eu controlo)</button>
+    <button onclick="becomeViewer()">👀 Sou Viewer (Só assisto)</button>
+  </div>
 
-    <div class="info">
-      <strong>Como usar:</strong><br>
-      • Abra este mesmo link nos dois navegadores<br>
-      • Um de vocês dá Play e avisa "play"<br>
-      • Quando quiser pausar, avise o outro pausar também
-    </div>
+  <video id="videoPlayer" controls>
+    <source src="https://x5sftp10thclopog.public.blob.vercel-storage.com/01.mp4" type="video/mp4">
+    Seu navegador não suporta vídeo.
+  </video>
 
-    <div class="info">
-      Link da sala:<br>
-      <div class="link">https://suihubsite.vercel.app</div>
-    </div>
+  <div class="info">
+    <strong>Como usar:</strong><br>
+    • Abra este link no seu navegador e clique em "Sou o Host"<br>
+    • Abra o mesmo link no navegador da sua amiga e clique em "Sou Viewer"<br>
+    • Quando você der play, pause ou avançar o vídeo, ela vai seguir automaticamente
   </div>
 
   <script>
-    // Cole o URL do Blob aqui ↓↓↓
-    const videoUrl = "https://x5sftp10thclopog.public.blob.vercel-storage.com/01.mp4";
+    // ================== SUAS CHAVES DO PUSHER ==================
+    const PUSHER_APP_KEY = "aa9a7a98dfdf02db42c8";
+    const PUSHER_CLUSTER = "sa1";
+    const CHANNEL_NAME = "serie-host-control";
 
-    const video = document.getElementById('videoPlayer');
-    const source = document.getElementById('videoSource');
-    
-    if (videoUrl && videoUrl !== "COLE_O_URL_DO_SEU_EPISODIO_AQUI") {
-      source.src = videoUrl;
-      video.load();
-    } else {
-      alert("❌ Você precisa colar o URL do Blob no código!");
+    let pusher;
+    let channel;
+    let isHost = false;
+    let video = document.getElementById('videoPlayer');
+    let lastSentTime = 0;
+
+    function initPusher() {
+      if (pusher) return; // evita conectar várias vezes
+
+      pusher = new Pusher(PUSHER_APP_KEY, {
+        cluster: PUSHER_CLUSTER,
+        forceTLS: true
+      });
+
+      channel = pusher.subscribe(CHANNEL_NAME);
+
+      // Viewer recebe os comandos do Host
+      channel.bind('client-video-command', function(data) {
+        if (isHost) return;
+
+        if (data.action === 'play') {
+          video.play().catch(() => {});
+        } else if (data.action === 'pause') {
+          video.pause();
+        } else if (data.action === 'seek') {
+          video.currentTime = data.currentTime || 0;
+        }
+      });
+
+      console.log("✅ Conectado ao Pusher com sucesso!");
     }
 
-    // Mensagem inicial
+    function becomeHost() {
+      isHost = true;
+      document.getElementById('status').innerHTML = '👑 <strong>Você é o HOST</strong><br>Controle o vídeo normalmente';
+      document.getElementById('status').style.backgroundColor = '#ff4d4d33';
+      video.controls = true;
+
+      initPusher();
+
+      // Envia comandos sempre que o Host interage com o vídeo
+      video.addEventListener('play', sendCommand);
+      video.addEventListener('pause', sendCommand);
+      video.addEventListener('seeked', () => sendCommand(true));
+      
+      alert('✅ Modo Host ativado!\n\nAgora sua amiga pode entrar como Viewer e seguir automaticamente.');
+    }
+
+    function becomeViewer() {
+      isHost = false;
+      document.getElementById('status').innerHTML = '👀 Modo Viewer<br>Aguarde o Host controlar';
+      document.getElementById('status').style.backgroundColor = '#333333';
+      video.controls = false;
+
+      initPusher();
+      
+      alert('👀 Modo Viewer ativado!\n\nO vídeo vai seguir o que o Host fizer.');
+    }
+
+    function sendCommand(isSeek = false) {
+      if (!isHost || !channel) return;
+
+      const now = Date.now();
+      if (now - lastSentTime < 250) return; // evita enviar muito rápido
+      lastSentTime = now;
+
+      let action = video.paused ? 'pause' : 'play';
+
+      channel.trigger('client-video-command', {
+        action: action,
+        currentTime: video.currentTime,
+        timestamp: Date.now()
+      });
+    }
+
+    // Carregamento inicial
     window.onload = () => {
-      if (videoUrl.includes("blob.vercel-storage.com")) {
-        console.log("✅ Vídeo carregado do Vercel Blob");
-      }
+      console.log("🎬 Site carregado - Vídeo do Blob pronto");
     };
   </script>
 </body>
