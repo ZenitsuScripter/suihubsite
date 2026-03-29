@@ -5,94 +5,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SuiHub - Assistir Juntos</title>
   <script src="https://js.pusher.com/8.4.0-rc2/pusher.min.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>📺</text></svg>">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: #141414;
       color: #ffffff;
       font-family: 'Helvetica Neue', Arial, sans-serif;
-      overflow-x: hidden;
     }
     header {
-      background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+      background: linear-gradient(to bottom, rgba(0,0,0,0.95), transparent);
       padding: 25px 60px;
       position: fixed;
       width: 100%;
       z-index: 100;
-      display: flex;
-      align-items: center;
     }
     .logo {
-      font-size: 32px;
+      font-size: 34px;
       font-weight: bold;
       color: #e50914;
     }
     .main {
-      padding-top: 120px;
+      padding-top: 130px;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
     h1 {
-      font-size: 3rem;
-      margin-bottom: 8px;
+      font-size: 3.2rem;
+      margin-bottom: 10px;
+      letter-spacing: -1px;
     }
     .subtitle {
       color: #b3b3b3;
-      font-size: 1.4rem;
-      margin-bottom: 50px;
+      font-size: 1.45rem;
+      margin-bottom: 60px;
     }
     .mode-selector {
       display: flex;
-      gap: 25px;
-      margin-bottom: 50px;
+      gap: 30px;
+      margin-bottom: 60px;
     }
     .mode-btn {
-      padding: 16px 40px;
-      font-size: 1.15rem;
+      padding: 18px 45px;
+      font-size: 1.2rem;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
+      font-weight: 600;
       transition: all 0.3s;
-      font-weight: 500;
     }
     .host-btn {
       background: #e50914;
       color: white;
     }
-    .host-btn:hover { background: #f40612; }
+    .host-btn:hover { background: #f40612; transform: scale(1.03); }
     .viewer-btn {
-      background: #333333;
+      background: #2f2f2f;
       color: white;
     }
-    .viewer-btn:hover { background: #4d4d4d; }
+    .viewer-btn:hover { background: #444; }
 
     .player-container {
       width: 100%;
-      max-width: 1150px;
-      position: relative;
+      max-width: 1180px;
+      margin-bottom: 30px;
     }
     video {
       width: 100%;
-      border-radius: 10px;
-      box-shadow: 0 30px 70px rgba(0,0,0,0.85);
+      border-radius: 12px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9);
     }
     .status-bar {
-      margin-top: 30px;
-      padding: 14px 40px;
-      border-radius: 6px;
-      font-size: 1.2rem;
-      min-height: 58px;
+      margin-top: 20px;
+      padding: 16px 50px;
+      border-radius: 8px;
+      font-size: 1.25rem;
+      min-height: 60px;
+      font-weight: 500;
     }
-    .host-mode { background: rgba(229, 9, 20, 0.25); color: #ff4d4d; }
-    .viewer-mode { background: rgba(255,255,255,0.08); color: #b3b3b3; }
+    .host-mode { background: rgba(229, 9, 20, 0.3); color: #ff4d4d; }
+    .viewer-mode { background: rgba(255,255,255,0.1); color: #b3b3b3; }
 
     .info {
-      margin-top: 60px;
+      margin-top: 70px;
       color: #666;
-      font-size: 1.05rem;
-      max-width: 620px;
+      font-size: 1.1rem;
+      max-width: 650px;
       text-align: center;
     }
   </style>
@@ -120,7 +120,7 @@
     <div class="status-bar" id="status">Escolha um modo para começar</div>
 
     <div class="info">
-      O Host controla play, pause e avanço • O Viewer acompanha automaticamente
+      O Host controla o vídeo completamente • O Viewer assiste em sincronia automática
     </div>
   </div>
 
@@ -144,23 +144,18 @@
 
       channel = pusher.subscribe(CHANNEL_NAME);
 
-      // Recebe comandos do Host
       channel.bind('client-video-command', function(data) {
         if (isHost) return;
 
-        if (data.action === 'play') {
-          video.play().catch(() => {});
-        } else if (data.action === 'pause') {
-          video.pause();
-        } else if (data.action === 'seek') {
-          video.currentTime = data.currentTime || 0;
-        }
+        if (data.action === 'play') video.play().catch(() => {});
+        else if (data.action === 'pause') video.pause();
+        else if (data.action === 'seek') video.currentTime = data.currentTime || 0;
       });
     }
 
     function becomeHost() {
       isHost = true;
-      document.getElementById('status').innerHTML = '👑 Modo Host ativado • Você está controlando';
+      document.getElementById('status').innerHTML = '👑 Modo Host • Você está no controle';
       document.getElementById('status').className = 'status-bar host-mode';
       video.controls = true;
 
@@ -185,16 +180,14 @@
       if (Date.now() - lastSentTime < 250) return;
       lastSentTime = Date.now();
 
-      const action = video.paused ? 'pause' : 'play';
-
       channel.trigger('client-video-command', {
-        action: action,
+        action: video.paused ? 'pause' : 'play',
         currentTime: video.currentTime || 0
       });
     }
 
     window.onload = () => {
-      console.log("%cSuiHub carregado com sucesso", "color:#e50914;font-size:14px");
+      console.log("%cSuiHub - Assistir Juntos carregado com sucesso", "color:#e50914; font-size:15px");
     };
   </script>
 </body>
