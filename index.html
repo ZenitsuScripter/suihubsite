@@ -3,94 +3,147 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assistindo Juntos - Host Control</title>
+  <title>SuiHub - Assistir Juntos</title>
   <script src="https://js.pusher.com/8.4.0-rc2/pusher.min.js"></script>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #0a0a0a;
-      color: #fff;
-      font-family: Arial, sans-serif;
+      background: #141414;
+      color: #ffffff;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    header {
+      background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+      padding: 20px 50px;
+      position: fixed;
+      width: 100%;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #e50914;
+    }
+    .main {
+      padding-top: 100px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 10px;
       text-align: center;
-      padding: 20px;
-      margin: 0;
     }
-    h1 { 
-      color: #ff4d4d; 
-      margin: 10px 0 5px; 
+    .subtitle {
+      color: #b3b3b3;
+      font-size: 1.3rem;
+      margin-bottom: 40px;
     }
-    .status {
-      font-size: 1.3em;
-      margin: 15px 0;
-      padding: 12px;
-      border-radius: 8px;
-      min-height: 50px;
+
+    .mode-selector {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .mode-btn {
+      padding: 14px 32px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .host-btn {
+      background: #e50914;
+      color: white;
+    }
+    .host-btn:hover {
+      background: #f40612;
+    }
+    .viewer-btn {
+      background: #333;
+      color: white;
+    }
+    .viewer-btn:hover {
+      background: #444;
+    }
+
+    .player-container {
+      width: 100%;
+      max-width: 1100px;
+      position: relative;
     }
     video {
       width: 100%;
-      max-width: 960px;
-      margin: 25px auto;
-      display: block;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.9);
-    }
-    button {
-      padding: 14px 28px;
-      margin: 8px;
-      font-size: 1.1em;
-      cursor: pointer;
-      border: none;
       border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
     }
-    .host-btn { 
-      background: #ff4d4d; 
-      color: white; 
+
+    .status-bar {
+      margin-top: 20px;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      min-height: 52px;
+      display: inline-block;
     }
+    .host-mode { background: rgba(229, 9, 20, 0.2); color: #ff4d4d; }
+    .viewer-mode { background: rgba(255,255,255,0.1); color: #b3b3b3; }
+
     .info {
-      color: #aaa;
-      margin: 25px 0;
-      line-height: 1.6;
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
+      margin-top: 50px;
+      color: #666;
+      font-size: 1rem;
+      max-width: 600px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>🎥 Assistindo Juntos</h1>
-  
-  <div class="status" id="status">Escolha seu modo abaixo</div>
+  <header>
+    <div class="logo">SuiHub</div>
+  </header>
 
-  <div>
-    <button onclick="becomeHost()" class="host-btn">👑 Sou o Host (Eu controlo)</button>
-    <button onclick="becomeViewer()">👀 Sou Viewer (Só assisto)</button>
-  </div>
+  <div class="main">
+    <h1>Assistindo Juntos</h1>
+    <p class="subtitle">Episódio 01</p>
 
-  <video id="videoPlayer" controls>
-    <source src="https://x5sftp10thclopog.public.blob.vercel-storage.com/01.mp4" type="video/mp4">
-    Seu navegador não suporta vídeo.
-  </video>
+    <div class="mode-selector">
+      <button onclick="becomeHost()" class="mode-btn host-btn">👑 Sou o Host</button>
+      <button onclick="becomeViewer()" class="mode-btn viewer-btn">👀 Só Assistir</button>
+    </div>
 
-  <div class="info">
-    <strong>Como usar:</strong><br>
-    • Abra este link no seu navegador e clique em "Sou o Host"<br>
-    • Abra o mesmo link no navegador da sua amiga e clique em "Sou Viewer"<br>
-    • Quando você der play, pause ou avançar o vídeo, ela vai seguir automaticamente
+    <div class="player-container">
+      <video id="videoPlayer" controls>
+        <source src="https://x5sftp10thclopog.public.blob.vercel-storage.com/01.mp4" type="video/mp4">
+      </video>
+    </div>
+
+    <div class="status-bar" id="status">Escolha um modo para começar</div>
+
+    <div class="info">
+      Host controla o vídeo • Viewer acompanha automaticamente
+    </div>
   </div>
 
   <script>
-    // ================== SUAS CHAVES DO PUSHER ==================
     const PUSHER_APP_KEY = "aa9a7a98dfdf02db42c8";
     const PUSHER_CLUSTER = "sa1";
     const CHANNEL_NAME = "serie-host-control";
 
-    let pusher;
-    let channel;
+    let pusher, channel;
     let isHost = false;
     let video = document.getElementById('videoPlayer');
     let lastSentTime = 0;
 
     function initPusher() {
-      if (pusher) return; // evita conectar várias vezes
+      if (pusher) return;
 
       pusher = new Pusher(PUSHER_APP_KEY, {
         cluster: PUSHER_CLUSTER,
@@ -99,8 +152,7 @@
 
       channel = pusher.subscribe(CHANNEL_NAME);
 
-      // Viewer recebe os comandos do Host
-      channel.bind('client-video-command', function(data) {
+      channel.bind('video-command', function(data) {
         if (isHost) return;
 
         if (data.action === 'play') {
@@ -111,56 +163,47 @@
           video.currentTime = data.currentTime || 0;
         }
       });
-
-      console.log("✅ Conectado ao Pusher com sucesso!");
     }
 
     function becomeHost() {
       isHost = true;
-      document.getElementById('status').innerHTML = '👑 <strong>Você é o HOST</strong><br>Controle o vídeo normalmente';
-      document.getElementById('status').style.backgroundColor = '#ff4d4d33';
+      document.getElementById('status').innerHTML = '👑 Modo Host ativado • Você está no controle';
+      document.getElementById('status').className = 'status-bar host-mode';
       video.controls = true;
 
       initPusher();
 
-      // Envia comandos sempre que o Host interage com o vídeo
       video.addEventListener('play', sendCommand);
       video.addEventListener('pause', sendCommand);
-      video.addEventListener('seeked', () => sendCommand(true));
-      
-      alert('✅ Modo Host ativado!\n\nAgora sua amiga pode entrar como Viewer e seguir automaticamente.');
+      video.addEventListener('seeked', sendCommand);
     }
 
     function becomeViewer() {
       isHost = false;
-      document.getElementById('status').innerHTML = '👀 Modo Viewer<br>Aguarde o Host controlar';
-      document.getElementById('status').style.backgroundColor = '#333333';
+      document.getElementById('status').innerHTML = '👀 Modo Viewer • Aguarde o Host';
+      document.getElementById('status').className = 'status-bar viewer-mode';
       video.controls = false;
 
       initPusher();
-      
-      alert('👀 Modo Viewer ativado!\n\nO vídeo vai seguir o que o Host fizer.');
     }
 
-    function sendCommand(isSeek = false) {
+    function sendCommand() {
       if (!isHost || !channel) return;
 
-      const now = Date.now();
-      if (now - lastSentTime < 250) return; // evita enviar muito rápido
-      lastSentTime = now;
+      if (Date.now() - lastSentTime < 300) return;
+      lastSentTime = Date.now();
 
-      let action = video.paused ? 'pause' : 'play';
+      const action = video.paused ? 'pause' : 'play';
 
-      channel.trigger('client-video-command', {
+      channel.trigger('video-command', {
         action: action,
-        currentTime: video.currentTime,
-        timestamp: Date.now()
+        currentTime: video.currentTime || 0
       });
     }
 
-    // Carregamento inicial
+    // Inicialização
     window.onload = () => {
-      console.log("🎬 Site carregado - Vídeo do Blob pronto");
+      console.log("%cSuiHub - Assistir Juntos carregado", "color: #e50914; font-size: 14px");
     };
   </script>
 </body>
