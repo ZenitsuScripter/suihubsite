@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistindo Juntos - Série</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+    h1 {
+      color: #ff4d4d;
+      margin-bottom: 10px;
+    }
+    video {
+      width: 100%;
+      max-width: 960px;
+      margin: 30px auto;
+      display: block;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .info {
+      margin: 20px 0;
+      color: #aaa;
+      font-size: 1.1em;
+    }
+    .link {
+      background: #1f1f1f;
+      padding: 12px 20px;
+      border-radius: 8px;
+      display: inline-block;
+      margin: 10px 0;
+      word-break: break-all;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎥 Assistindo Juntos</h1>
+    <p class="info">Episódio sincronizado manualmente por enquanto</p>
+
+    <video id="videoPlayer" controls autoplay>
+      <source id="videoSource" src="" type="video/mp4">
+      Seu navegador não suporta o vídeo.
+    </video>
+
+    <div class="info">
+      <strong>Como usar:</strong><br>
+      • Abra este mesmo link nos dois navegadores<br>
+      • Um de vocês dá Play e avisa "play"<br>
+      • Quando quiser pausar, avise o outro pausar também
+    </div>
+
+    <div class="info">
+      Link da sala:<br>
+      <div class="link">https://suihubsite.vercel.app</div>
+    </div>
+  </div>
+
+  <script>
+    // Cole o URL do Blob aqui ↓↓↓
+    const videoUrl = "https://x5sftp10thclopog.public.blob.vercel-storage.com/01.mp4";
+
+    const video = document.getElementById('videoPlayer');
+    const source = document.getElementById('videoSource');
+    
+    if (videoUrl && videoUrl !== "COLE_O_URL_DO_SEU_EPISODIO_AQUI") {
+      source.src = videoUrl;
+      video.load();
+    } else {
+      alert("❌ Você precisa colar o URL do Blob no código!");
+    }
+
+    // Mensagem inicial
+    window.onload = () => {
+      if (videoUrl.includes("blob.vercel-storage.com")) {
+        console.log("✅ Vídeo carregado do Vercel Blob");
+      }
+    };
+  </script>
+</body>
+</html>
