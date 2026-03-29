@@ -32,21 +32,9 @@
       flex-direction: column;
       align-items: center;
     }
-    h1 {
-      font-size: 3.2rem;
-      margin-bottom: 10px;
-      letter-spacing: -1px;
-    }
-    .subtitle {
-      color: #b3b3b3;
-      font-size: 1.45rem;
-      margin-bottom: 60px;
-    }
-    .mode-selector {
-      display: flex;
-      gap: 30px;
-      margin-bottom: 60px;
-    }
+    h1 { font-size: 3.2rem; margin-bottom: 10px; letter-spacing: -1px; }
+    .subtitle { color: #b3b3b3; font-size: 1.45rem; margin-bottom: 60px; }
+    .mode-selector { display: flex; gap: 30px; margin-bottom: 60px; }
     .mode-btn {
       padding: 18px 45px;
       font-size: 1.2rem;
@@ -56,26 +44,15 @@
       font-weight: 600;
       transition: all 0.3s;
     }
-    .host-btn {
-      background: #e50914;
-      color: white;
-    }
+    .host-btn { background: #e50914; color: white; }
     .host-btn:hover { background: #f40612; transform: scale(1.03); }
-    .viewer-btn {
-      background: #2f2f2f;
-      color: white;
-    }
+    .viewer-btn { background: #2f2f2f; color: white; }
     .viewer-btn:hover { background: #444; }
-
-    .player-container {
-      width: 100%;
-      max-width: 1180px;
-      margin-bottom: 30px;
-    }
+    .player-container { width: 100%; max-width: 1180px; margin-bottom: 30px; }
     video {
       width: 100%;
       border-radius: 12px;
-      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9);
+      box-shadow: 0 25px 80px rgba(0,0,0,0.9);
     }
     .status-bar {
       margin-top: 20px;
@@ -85,9 +62,8 @@
       min-height: 60px;
       font-weight: 500;
     }
-    .host-mode { background: rgba(229, 9, 20, 0.3); color: #ff4d4d; }
+    .host-mode { background: rgba(229,9,20,0.3); color: #ff4d4d; }
     .viewer-mode { background: rgba(255,255,255,0.1); color: #b3b3b3; }
-
     .info {
       margin-top: 70px;
       color: #666;
@@ -127,29 +103,41 @@
   <script>
     const PUSHER_APP_KEY = "aa9a7a98dfdf02db42c8";
     const PUSHER_CLUSTER = "sa1";
-    const CHANNEL_NAME = "serie-host-control";
+    const CHANNEL_NAME = "serie-control"; // canal público, sem "private-"
 
     let pusher, channel;
     let isHost = false;
     let video = document.getElementById('videoPlayer');
     let lastSentTime = 0;
+    let isSyncing = false; // evita loop: viewer recebe seek → dispara evento → loop
 
     function initPusher() {
       if (pusher) return;
 
       pusher = new Pusher(PUSHER_APP_KEY, {
         cluster: PUSHER_CLUSTER,
-        forceTLS: true
+        forceTLS: true,
       });
 
       channel = pusher.subscribe(CHANNEL_NAME);
 
-      channel.bind('client-video-command', function(data) {
-        if (isHost) return;
+      // Viewer escuta os comandos do Host
+      channel.bind('video-command', function(data) {
+        if (isHost) return; // host ignora
 
-        if (data.action === 'play') video.play().catch(() => {});
-        else if (data.action === 'pause') video.pause();
-        else if (data.action === 'seek') video.currentTime = data.currentTime || 0;
+        isSyncing = true;
+
+        if (data.action === 'seek' || Math.abs(video.currentTime - data.currentTime) > 2) {
+          video.currentTime = data.currentTime;
+        }
+
+        if (data.action === 'play') {
+          video.play().catch(() => {});
+        } else if (data.action === 'pause') {
+          video.pause();
+        }
+
+        setTimeout(() => { isSyncing = false; }, 500);
       });
     }
 
@@ -161,9 +149,9 @@
 
       initPusher();
 
-      video.addEventListener('play', sendCommand);
-      video.addEventListener('pause', sendCommand);
-      video.addEventListener('seeked', sendCommand);
+      video.addEventListener('play', () => sendCommand('play'));
+      video.addEventListener('pause', () => sendCommand('pause'));
+      video.addEventListener('seeked', () => sendCommand('seek'));
     }
 
     function becomeViewer() {
@@ -175,19 +163,28 @@
       initPusher();
     }
 
-    function sendCommand() {
-      if (!isHost || !channel) return;
-      if (Date.now() - lastSentTime < 250) return;
+    async function sendCommand(action) {
+      if (!isHost) return;
+      if (isSyncing) return;
+      if (Date.now() - lastSentTime < 300) return;
       lastSentTime = Date.now();
 
-      channel.trigger('client-video-command', {
-        action: video.paused ? 'pause' : 'play',
-        currentTime: video.currentTime || 0
-      });
+      try {
+        await fetch('/api/trigger', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action,
+            currentTime: video.currentTime,
+          }),
+        });
+      } catch (err) {
+        console.error('Erro ao enviar comando:', err);
+      }
     }
 
     window.onload = () => {
-      console.log("%cSuiHub - Assistir Juntos carregado com sucesso", "color:#e50914; font-size:15px");
+      console.log("%cSuiHub carregado", "color:#e50914; font-size:15px");
     };
   </script>
 </body>
